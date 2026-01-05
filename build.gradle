@@ -38,6 +38,18 @@ dependencies {
     runtimeOnly 'com.h2database:h2'
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
     annotationProcessor 'org.projectlombok:lombok'
+
+    // Slack SDK - 최신 버전
+    implementation 'com.slack.api:bolt:1.44.2'
+    implementation 'com.slack.api:bolt-servlet:1.44.2'
+    implementation 'com.slack.api:slack-api-client:1.44.2'
+
+    // Jira API (WebClient 사용 권장)
+    implementation 'com.atlassian.jira:jira-rest-java-client-core:5.2.6'
+    implementation 'com.atlassian.jira:jira-rest-java-client-api:5.2.6'
+    implementation 'io.atlassian.fugue:fugue:4.7.2'
+
+    // 테스트
     testImplementation 'org.springframework.boot:spring-boot-restdocs'
     testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-validation-test'
