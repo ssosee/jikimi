@@ -6,9 +6,9 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum Environment {
-    ALL("모든 환경"),
-    PROD("운영"),
-    DEV("개발");
+    ALL("ALL"),
+    PROD("PROD"),
+    DEV("DEV");
 
     private final String displayName;
 }

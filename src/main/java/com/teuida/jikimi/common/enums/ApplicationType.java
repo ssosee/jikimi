@@ -12,4 +12,9 @@ public enum ApplicationType {
     WEB(":react: Web");
 
     private final String displayName;
+
+    @Override
+    public String toString() {
+        return displayName;
+    }
 }

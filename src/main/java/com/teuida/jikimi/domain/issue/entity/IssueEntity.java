@@ -2,6 +2,7 @@ package com.teuida.jikimi.domain.issue.entity;
 
 import com.teuida.jikimi.common.enums.Environment;
 import com.teuida.jikimi.common.enums.IssueStatus;
+import com.teuida.jikimi.domain.issue.service.dto.CreateIssueRequest;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -11,7 +12,10 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
@@ -19,6 +23,7 @@ import lombok.Getter;
         @UniqueConstraint(name = "uk_issues_01", columnNames = {"slack_assignee_id", "slack_message_ts"}),
         @UniqueConstraint(name = "uk_issues_02", columnNames = {"jira_issue_key"})
 })
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class IssueEntity extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -62,4 +67,34 @@ public class IssueEntity extends BaseTimeEntity {
 
     @Column(name = "jira_assignee_id")
     private String jiraAssigneeId;
+
+    @Builder
+    private IssueEntity(Environment environment, IssueStatus status, String title, String description, String userEmail,
+                        String slackReporterId, String slackAssigneeId, String slackChannelId, String slackMessageTs,
+                        String jiraIssueKey, String jiraIssueUrl, String jiraAssigneeId) {
+        this.environment = environment;
+        this.status = status;
+        this.title = title;
+        this.description = description;
+        this.userEmail = userEmail;
+        this.slackReporterId = slackReporterId;
+        this.slackAssigneeId = slackAssigneeId;
+        this.slackChannelId = slackChannelId;
+        this.slackMessageTs = slackMessageTs;
+        this.jiraIssueKey = jiraIssueKey;
+        this.jiraIssueUrl = jiraIssueUrl;
+        this.jiraAssigneeId = jiraAssigneeId;
+    }
+
+    public static IssueEntity create(CreateIssueRequest request) {
+        return IssueEntity.builder()
+                .slackChannelId(request.slackChannelId())
+                .slackReporterId(request.slackReporterId())
+                .environment(request.environment())
+                .status(IssueStatus.OPEN)
+                .title(request.title())
+                .description(request.description())
+                .userEmail(request.userEmail())
+                .build();
+    }
 }

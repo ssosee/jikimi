@@ -15,4 +15,9 @@ public enum CourseType {
     ZHEN("🇨🇳ZHEN");
 
     private final String displayName;
+
+    @Override
+    public String toString() {
+        return displayName;
+    }
 }

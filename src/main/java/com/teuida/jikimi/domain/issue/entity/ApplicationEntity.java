@@ -12,11 +12,15 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
 @Table(name = "applications")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ApplicationEntity extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,5 +33,18 @@ public class ApplicationEntity extends BaseTimeEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "issue_id")
-    private IssueEntity issue;
+    private IssueEntity issueEntity;
+
+    @Builder
+    private ApplicationEntity(ApplicationType type, IssueEntity issueEntity) {
+        this.type = type;
+        this.issueEntity = issueEntity;
+    }
+
+    public static ApplicationEntity create(ApplicationType type, IssueEntity issueEntity) {
+        return ApplicationEntity.builder()
+                .type(type)
+                .issueEntity(issueEntity)
+                .build();
+    }
 }
