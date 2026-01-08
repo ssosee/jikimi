@@ -153,7 +153,7 @@ public class SlackIssueModalHandler extends SlackIssueCommandHandler {
         if (StringUtils.hasText(issue.slackAssigneeId())) {
             // 7. [버튼 액션]
             blocks.add(header(h -> h.text(plainText(pt -> pt
-                    .text(":teuidaplant: 이슈에 대해 다음 작업을 선택하세요."))
+                    .text("👇 이슈에 대해 다음 작업을 선택하세요."))
             )));
             blocks.add(actions(a -> a.blockId(String.valueOf(issue.id())).elements(asElements(
                     button(b -> b.text(plainText(":nyancat_big: 티켓 생성"))
@@ -171,7 +171,7 @@ public class SlackIssueModalHandler extends SlackIssueCommandHandler {
         else if (!StringUtils.hasText(issue.slackAssigneeId())) {
             // 7. [버튼 액션]
             blocks.add(header(h -> h.text(plainText(pt -> pt
-                    .text(":teuidaplant: 아래 버튼을 눌러 담당자를 지정하세요."))
+                    .text("👇 아래 버튼을 눌러 담당자를 지정하세요."))
             )));
             blocks.add(actions(a -> a.blockId(String.valueOf(issue.id())).elements(asElements(
                     button(b -> b.text(plainText("나에게 할당"))
