@@ -1,11 +1,12 @@
 package com.teuida.jikimi.domain.issue.entity;
 
-import com.teuida.jikimi.common.enums.CourseType;
+import com.teuida.jikimi.common.enums.ApplicationType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -19,32 +20,32 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
-@Table(name = "course")
+@Table(name = "issue_application")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class CourseEntity extends BaseTimeEntity {
+public class IssueApplicationEntity extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "issue_id", foreignKey = @ForeignKey(name = "fk_issue_application_01"))
+    private IssueEntity issueEntity;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "type")
-    private CourseType type;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "issue_id")
-    private IssueEntity issue;
+    private ApplicationType type;
 
     @Builder
-    private CourseEntity(CourseType type, IssueEntity issue) {
+    private IssueApplicationEntity(ApplicationType type, IssueEntity issueEntity) {
         this.type = type;
-        this.issue = issue;
+        this.issueEntity = issueEntity;
     }
 
-    public static CourseEntity create(CourseType type, IssueEntity issueEntity) {
-        return CourseEntity.builder()
+    public static IssueApplicationEntity create(IssueEntity issueEntity, ApplicationType type) {
+        return IssueApplicationEntity.builder()
+                .issueEntity(issueEntity)
                 .type(type)
-                .issue(issueEntity)
                 .build();
     }
 }

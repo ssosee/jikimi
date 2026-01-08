@@ -4,18 +4,21 @@ import com.teuida.jikimi.common.enums.ApplicationType;
 import com.teuida.jikimi.common.enums.CourseType;
 import com.teuida.jikimi.common.enums.Environment;
 import com.teuida.jikimi.common.enums.IssueStatus;
-import com.teuida.jikimi.domain.issue.entity.ApplicationEntity;
-import com.teuida.jikimi.domain.issue.entity.CourseEntity;
+import com.teuida.jikimi.domain.issue.entity.IssueApplicationEntity;
+import com.teuida.jikimi.domain.issue.entity.IssueCourseEntity;
 import com.teuida.jikimi.domain.issue.entity.IssueEntity;
+import com.teuida.jikimi.domain.issue.entity.IssueUsergroupEntity;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.Builder;
 
+@Builder
 public record Issue(Long id,
                     String slackMessageTs,
                     String slackChannelId,
                     String slackReporterId,
                     String slackAssigneeId,
+                    Set<String> slackAssignedUsergroupIds,
                     Environment environment,
                     IssueStatus status,
                     Set<ApplicationType> applicationTypes,
@@ -26,23 +29,24 @@ public record Issue(Long id,
                     String jiraIssueKey,
                     String jiraIssueUrl,
                     String jiraAssigneeId) {
-    @Builder
-    public Issue {
-    }
 
     public static Issue create(IssueEntity issueEntity,
-                               Set<ApplicationEntity> applicationEntities,
-                               Set<CourseEntity> courseEntities) {
+                               Set<IssueApplicationEntity> applicationEntities,
+                               Set<IssueCourseEntity> courseEntities,
+                               Set<IssueUsergroupEntity> issueUsergroupEntities) {
         return Issue.builder()
                 .id(issueEntity.getId())
                 .slackChannelId(issueEntity.getSlackChannelId())
                 .slackReporterId(issueEntity.getSlackReporterId())
+                .slackAssignedUsergroupIds(issueUsergroupEntities.stream()
+                        .map(IssueUsergroupEntity::getSlackUsergroupId)
+                        .collect(Collectors.toSet()))
                 .environment(issueEntity.getEnvironment())
                 .applicationTypes(applicationEntities.stream()
-                        .map(ApplicationEntity::getType)
+                        .map(IssueApplicationEntity::getType)
                         .collect(Collectors.toSet()))
                 .courseTypes(courseEntities.stream()
-                        .map(CourseEntity::getType)
+                        .map(IssueCourseEntity::getType)
                         .collect(Collectors.toSet()))
                 .status(issueEntity.getStatus())
                 .title(issueEntity.getTitle())

@@ -1,11 +1,8 @@
 package com.teuida.jikimi.domain.issue.entity;
 
-import com.teuida.jikimi.common.enums.ApplicationType;
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -19,32 +16,29 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
-@Table(name = "applications")
+@Table(name = "issue_usergroup")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class ApplicationEntity extends BaseTimeEntity {
+public class IssueUsergroupEntity extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     private Long id;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "type")
-    private ApplicationType type;
-
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "issue_id")
+    @JoinColumn(name = "issue_id", foreignKey = @ForeignKey(name = "fk_issue_team_01"))
     private IssueEntity issueEntity;
 
+    private String slackUsergroupId;
+
     @Builder
-    private ApplicationEntity(ApplicationType type, IssueEntity issueEntity) {
-        this.type = type;
+    private IssueUsergroupEntity(IssueEntity issueEntity, String slackUsergroupId) {
         this.issueEntity = issueEntity;
+        this.slackUsergroupId = slackUsergroupId;
     }
 
-    public static ApplicationEntity create(ApplicationType type, IssueEntity issueEntity) {
-        return ApplicationEntity.builder()
-                .type(type)
+    public static IssueUsergroupEntity create(IssueEntity issueEntity, String slackUsergroupId) {
+        return IssueUsergroupEntity.builder()
                 .issueEntity(issueEntity)
+                .slackUsergroupId(slackUsergroupId)
                 .build();
     }
 }

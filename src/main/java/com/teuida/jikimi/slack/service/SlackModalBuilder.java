@@ -16,7 +16,7 @@ abstract public class SlackModalBuilder {
 
     public static <E extends Enum<E>> List<OptionObject> createOptions(Class<E> enumClass) {
         return Arrays.stream(enumClass.getEnumConstants())
-                .map(value -> option(plainText(value.toString()), value.toString()))
+                .map(value -> option(plainText(value.toString()), value.name()))
                 .collect(Collectors.toList());
     }
 }

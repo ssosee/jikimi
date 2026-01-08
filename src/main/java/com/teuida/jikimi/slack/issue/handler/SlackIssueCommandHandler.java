@@ -14,6 +14,20 @@ import static com.slack.api.model.view.Views.view;
 import static com.slack.api.model.view.Views.viewClose;
 import static com.slack.api.model.view.Views.viewSubmit;
 import static com.slack.api.model.view.Views.viewTitle;
+import static com.teuida.jikimi.slack.issue.IssueModalKeys.ACTION_APPLICATION_TYPE;
+import static com.teuida.jikimi.slack.issue.IssueModalKeys.ACTION_COURSE_TYPE;
+import static com.teuida.jikimi.slack.issue.IssueModalKeys.ACTION_DESCRIPTION;
+import static com.teuida.jikimi.slack.issue.IssueModalKeys.ACTION_ENVIRONMENT;
+import static com.teuida.jikimi.slack.issue.IssueModalKeys.ACTION_TITLE;
+import static com.teuida.jikimi.slack.issue.IssueModalKeys.ACTION_USERGROUP;
+import static com.teuida.jikimi.slack.issue.IssueModalKeys.ACTION_USER_EMAIL;
+import static com.teuida.jikimi.slack.issue.IssueModalKeys.BLOCK_APPLICATION_TYPE;
+import static com.teuida.jikimi.slack.issue.IssueModalKeys.BLOCK_COURSE_TYPE;
+import static com.teuida.jikimi.slack.issue.IssueModalKeys.BLOCK_DESCRIPTION;
+import static com.teuida.jikimi.slack.issue.IssueModalKeys.BLOCK_ENVIRONMENT;
+import static com.teuida.jikimi.slack.issue.IssueModalKeys.BLOCK_TITLE;
+import static com.teuida.jikimi.slack.issue.IssueModalKeys.BLOCK_USERGROUP;
+import static com.teuida.jikimi.slack.issue.IssueModalKeys.BLOCK_USER_EMAIL;
 import static com.teuida.jikimi.slack.service.SlackModalBuilder.PLAIN_TEXT;
 import static com.teuida.jikimi.slack.service.SlackModalBuilder.createOptions;
 
@@ -41,7 +55,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class SlackIssueCommandHandler implements SlackHandlerRegistrar {
 
-    private final SlackService slackService;
+    protected final SlackService slackService;
 
     @Override
     public void register(App app) {
@@ -63,7 +77,7 @@ public class SlackIssueCommandHandler implements SlackHandlerRegistrar {
         List<Usergroup> findUsergroups = slackService.fetchUserGroups(client, botToken);
         View view = buildIssueModal(channelId, ctx.getBotId(), findUsergroups, getCallbackId());
 
-        client.viewsOpen(viewsOpenRequest -> viewsOpenRequest
+        client.viewsOpen(builder -> builder
                 .triggerId(ctx.getTriggerId())
                 .view(view)
         );
@@ -90,28 +104,28 @@ public class SlackIssueCommandHandler implements SlackHandlerRegistrar {
                 .close(viewClose(c -> c.type(PLAIN_TEXT).text("닫기")))
                 .blocks(asBlocks(
                         // 1. 실행 환경
-                        input(i -> i.blockId("block_environment").label(plainText("실행 환경")).element(
-                                staticSelect(m -> m.actionId("action_environment")
+                        input(i -> i.blockId(BLOCK_ENVIRONMENT).label(plainText("실행 환경")).element(
+                                staticSelect(m -> m.actionId(ACTION_ENVIRONMENT)
                                         .placeholder(plainText(Environment.PROD.toString()))
                                         .initialOption(
-                                                option(plainText(Environment.PROD.toString()), Environment.PROD.toString()))
+                                                option(plainText(Environment.PROD.toString()), Environment.PROD.name()))
                                         .options(createOptions(Environment.class))
                                 )
                         ).hint(plainText("실행 환경을 선택해주세요."))),
 
                         // 2. 코스
-                        input(i -> i.blockId("block_course_type").optional(true).label(plainText("코스")).element(
-                                multiStaticSelect(s -> s.actionId("action_course_type")
+                        input(i -> i.blockId(BLOCK_COURSE_TYPE).optional(true).label(plainText("코스")).element(
+                                multiStaticSelect(s -> s.actionId(ACTION_COURSE_TYPE)
                                         .placeholder(plainText(CourseType.ALL.toString()))
                                         .initialOptions(asOptions(
-                                                option(plainText(CourseType.ALL.toString()), CourseType.ALL.toString())))
+                                                option(plainText(CourseType.ALL.toString()), CourseType.ALL.name())))
                                         .options(createOptions(CourseType.class))
                                 )
                         ).hint(plainText("코스를 선택해주세요."))),
 
                         // 3. 애플리케이션 종류
-                        input(i -> i.blockId("block_application_type").label(plainText("애플리케이션 종류")).element(
-                                multiStaticSelect(m -> m.actionId("action_application_type")
+                        input(i -> i.blockId(BLOCK_APPLICATION_TYPE).label(plainText("애플리케이션 종류")).element(
+                                multiStaticSelect(m -> m.actionId(ACTION_APPLICATION_TYPE)
                                         .placeholder(plainText("Server, Web..."))
                                         .maxSelectedItems(4)
                                         .options(createOptions(ApplicationType.class))
@@ -119,15 +133,15 @@ public class SlackIssueCommandHandler implements SlackHandlerRegistrar {
                         ).hint(plainText("애플리케이션 종류를 선택해주세요."))),
 
                         // 4. 이슈 제목
-                        input(i -> i.blockId("block_title").label(plainText("이슈 제목")).element(
-                                plainTextInput(p -> p.actionId("action_title")
+                        input(i -> i.blockId(BLOCK_TITLE).label(plainText("이슈 제목")).element(
+                                plainTextInput(p -> p.actionId(ACTION_TITLE)
                                         .maxLength(100)
                                         .placeholder(plainText("마이크 이슈")))
                         )),
 
                         // 5. 이슈 내용 설명
-                        input(i -> i.blockId("block_description").label(plainText("이슈 내용 설명")).element(
-                                plainTextInput(p -> p.actionId("action_description")
+                        input(i -> i.blockId(BLOCK_DESCRIPTION).label(plainText("이슈 내용 설명")).element(
+                                plainTextInput(p -> p.actionId(ACTION_DESCRIPTION)
                                         .focusOnLoad(true)
                                         .multiline(true)
                                         .maxLength(1000)
@@ -135,16 +149,16 @@ public class SlackIssueCommandHandler implements SlackHandlerRegistrar {
                         )),
 
                         // 7. 팀 or 개인 담당자 선택 -> BLOCK_ASSIGNEE_TEAM_OR_USER 사용
-                        input(i -> i.blockId("block_usergroup").label(plainText("팀")).element(
-                                multiStaticSelect(m -> m.actionId("action_usergroup")
+                        input(i -> i.blockId(BLOCK_USERGROUP).label(plainText("팀")).element(
+                                multiStaticSelect(m -> m.actionId(ACTION_USERGROUP)
                                         .placeholder(plainText("개발팀"))
                                         .optionGroups(List.of(optionUsergroups))
                                 )
                         ).hint(plainText("담당팀을 선택해주세요."))),
 
                         // 8. 사용자 이메일
-                        input(i -> i.blockId("block_user_email").optional(true).label(plainText("사용자 이메일")).element(
-                                emailTextInput(p -> p.actionId("action_user_email")
+                        input(i -> i.blockId(BLOCK_USER_EMAIL).optional(true).label(plainText("사용자 이메일")).element(
+                                emailTextInput(p -> p.actionId(ACTION_USER_EMAIL)
                                         .placeholder(plainText("ralph@teuida.net")))
                         ).hint(plainText("사용자 이메일을 알려주세요.")))
                 )));
