@@ -58,4 +58,22 @@ public record Issue(Long id,
                 .slackMessageTs(issueEntity.getSlackMessageTs())
                 .build();
     }
+
+    public static Issue from(IssueEntity issueEntity) {
+        return Issue.builder()
+                .id(issueEntity.getId())
+                .environment(issueEntity.getEnvironment())
+                .status(issueEntity.getStatus())
+                .title(issueEntity.getTitle())
+                .description(issueEntity.getDescription())
+                .userEmail(issueEntity.getUserEmail())
+                .slackReporterId(issueEntity.getSlackReporterId())
+                .slackAssigneeId(issueEntity.getSlackAssigneeId())
+                .slackChannelId(issueEntity.getSlackChannelId())
+                .slackMessageTs(issueEntity.getSlackMessageTs())
+                .jiraIssueKey(issueEntity.getJiraIssueKey())
+                .jiraIssueUrl(issueEntity.getJiraIssueUrl())
+                .jiraAssigneeId(issueEntity.getJiraAssigneeId())
+                .build();
+    }
 }

@@ -108,4 +108,12 @@ public class IssueEntity extends BaseTimeEntity {
     public void changeSlackAssigneeId(String slackAssigneeId) {
         this.slackAssigneeId = slackAssigneeId;
     }
+
+    public boolean isClosed() {
+        return this.status == IssueStatus.CLOSED;
+    }
+
+    public boolean isEqualsSlackReporterId(String slackReporterId) {
+        return this.slackReporterId.equals(slackReporterId);
+    }
 }

@@ -41,9 +41,7 @@ public class SlackIssueCommandHandler implements SlackHandlerRegistrar {
         // 모달 생성
         client.viewsOpen(builder -> builder
                 .triggerId(ctx.getTriggerId())
-                .view(IssueModalBuilder.buildIssueModal(
-                        channelId, ctx.getBotId(),
-                        findUsergroups, ISSUE_MODAL))
+                .view(IssueModalBuilder.buildIssueModal(channelId, ctx.getBotId(), findUsergroups, ISSUE_MODAL))
         );
 
         return ctx.ack();

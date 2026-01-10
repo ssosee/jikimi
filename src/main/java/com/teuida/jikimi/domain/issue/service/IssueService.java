@@ -1,5 +1,6 @@
 package com.teuida.jikimi.domain.issue.service;
 
+import com.teuida.jikimi.common.TimeProvider;
 import com.teuida.jikimi.common.annotation.IssueLogging;
 import com.teuida.jikimi.common.enums.ActionType;
 import com.teuida.jikimi.common.enums.ApplicationType;
@@ -26,6 +27,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class IssueService {
+
+    private final TimeProvider timeProvider;
 
     private final IssueQueryRepository issueQueryRepository;
     private final IssueEntityRepository issueEntityRepository;
@@ -95,5 +98,39 @@ public class IssueService {
         Set<IssueUsergroupEntity> findIssueUsergroupEntites = issueUsergroupEntityRepository.findByIssueEntity(findIssueEntity);
 
         return Issue.of(findIssueEntity, findIssueApplicationEntities, findIssueCourseEntities, findIssueUsergroupEntites);
+    }
+
+    public Issue getIssue(Long issueId) {
+        // 이슈 조회
+        IssueEntity findIssueEntity = issueEntityRepository.findById(issueId)
+                .orElseThrow(() -> new NotFoundException(IssueEntity.class));
+
+        return Issue.from(findIssueEntity);
+    }
+
+    @Transactional
+    @IssueLogging(actionType = ActionType.DELETED)
+    public Issue delete(Long issueId, String slackReporterId) {
+        // 이슈 조회
+        IssueEntity findIssueEntity = issueEntityRepository.findById(issueId)
+                .orElseThrow(() -> new NotFoundException(IssueEntity.class));
+
+        // 이슈가 완료된 상태이면
+        if (findIssueEntity.isClosed()) {
+            throw new IllegalStateException("완료된 이슈는 삭제할 수 없습니다.");
+        }
+
+        // 이슈 제보자와 삭제 요청자가 다르면
+        if (!findIssueEntity.isEqualsSlackReporterId(slackReporterId)) {
+            throw new IllegalStateException("이슈 제보자만 이슈를 삭제할 수 있습니다.");
+        }
+
+        // 이슈 삭제
+        findIssueEntity.delete(timeProvider.nowDateTime());
+        issueCourseEntityRepository.bulkDelete(issueId, timeProvider.nowDateTime());
+        issueUsergroupEntityRepository.bulkDelete(issueId, timeProvider.nowDateTime());
+        issueApplicationEntityRepository.bulkDelete(issueId, timeProvider.nowDateTime());
+
+        return Issue.from(findIssueEntity);
     }
 }

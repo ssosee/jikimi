@@ -22,4 +22,8 @@ abstract public class BaseTimeEntity {
     private LocalDateTime updateDateTime;
 
     private LocalDateTime deleteDateTime;
+
+    public void delete(LocalDateTime deleteDateTime) {
+        this.deleteDateTime = deleteDateTime;
+    }
 }

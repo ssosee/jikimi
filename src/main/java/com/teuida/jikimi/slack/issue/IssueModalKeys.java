@@ -6,6 +6,7 @@ abstract public class IssueModalKeys {
 
     // Callback IDs
     public static final String ISSUE_MODAL = "issue_modal";
+    public static final String ISSUE_DELETE_CONFIRM_MODAL = "issue_delete_confirm_modal";
 
     // Block IDs
     public static final String BLOCK_ENVIRONMENT = "block_environment";

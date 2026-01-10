@@ -1,6 +1,7 @@
 package com.teuida.jikimi.domain.issue.entity;
 
 import com.teuida.jikimi.common.enums.ApplicationType;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -28,7 +29,7 @@ public class IssueApplicationEntity extends BaseTimeEntity {
     @Column(name = "id")
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "issue_id", foreignKey = @ForeignKey(name = "fk_issue_application_01"))
     private IssueEntity issueEntity;
 

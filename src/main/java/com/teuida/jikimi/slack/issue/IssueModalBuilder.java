@@ -1,8 +1,11 @@
 package com.teuida.jikimi.slack.issue;
 
 import static com.slack.api.model.block.Blocks.asBlocks;
+import static com.slack.api.model.block.Blocks.header;
 import static com.slack.api.model.block.Blocks.input;
+import static com.slack.api.model.block.Blocks.section;
 import static com.slack.api.model.block.composition.BlockCompositions.asOptions;
+import static com.slack.api.model.block.composition.BlockCompositions.markdownText;
 import static com.slack.api.model.block.composition.BlockCompositions.option;
 import static com.slack.api.model.block.composition.BlockCompositions.optionGroup;
 import static com.slack.api.model.block.composition.BlockCompositions.plainText;
@@ -36,6 +39,7 @@ import com.slack.api.model.view.View;
 import com.teuida.jikimi.common.enums.ApplicationType;
 import com.teuida.jikimi.common.enums.CourseType;
 import com.teuida.jikimi.common.enums.Environment;
+import com.teuida.jikimi.domain.issue.model.Issue;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -65,7 +69,7 @@ abstract public class IssueModalBuilder {
                 .type(MODAL)
                 .callbackId(callbackId)
                 .privateMetadata(channelId)
-                .botId(botId)
+                // .botId(botId)
                 .title(viewTitle(t -> t.type(PLAIN_TEXT).text("이슈 제보")))
                 .submit(viewSubmit(s -> s.type(PLAIN_TEXT).text("제출")))
                 .close(viewClose(c -> c.type(PLAIN_TEXT).text("닫기")))
@@ -129,5 +133,26 @@ abstract public class IssueModalBuilder {
                                         .placeholder(plainText("ralph@teuida.net")))
                         ).hint(plainText("사용자 이메일을 알려주세요.")))
                 )));
+    }
+
+    public static View buildDeleteIssueConfirmModal(String callbackId, Issue issue) {
+
+        String descriptionPreview = issue.description().substring(0, Math.min(20, issue.description().length()));
+
+        return view(view -> view.type(MODAL)
+                .callbackId(callbackId)
+                .privateMetadata(String.valueOf(issue.id()))
+                .title(viewTitle(t -> t.type(PLAIN_TEXT).text("이슈 삭제")))
+                .close(viewClose(c -> c.type(PLAIN_TEXT).text("취소")))
+                .submit(viewSubmit(s -> s.type(PLAIN_TEXT).text("삭제")))
+                .blocks(asBlocks(
+                        header(h -> h.text(plainText(":warning: 이슈를 삭제하시겠습니까?"))),
+                        section(s -> s.text(markdownText(
+                                "*이슈 제목*: " + issue.title() + "\n" +
+                                        "*이슈 내용*: " + descriptionPreview + "...\n\n" +
+                                        "_삭제된 이슈는 복구할 수 없습니다._"
+                        )))
+                ))
+        );
     }
 }
