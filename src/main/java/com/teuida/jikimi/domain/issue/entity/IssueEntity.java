@@ -100,8 +100,12 @@ public class IssueEntity extends BaseTimeEntity {
 
     public void changeSlackMessageTs(String slackMessageTs) {
         if (this.slackMessageTs != null) {
-            throw new IllegalStateException("해당 메시지의 타임스탬프가 이미 존재 합니다.");
+            throw new IllegalStateException("해당 메시지의 타임 스탬프가 이미 존재 합니다.");
         }
         this.slackMessageTs = slackMessageTs;
+    }
+
+    public void changeSlackAssigneeId(String slackAssigneeId) {
+        this.slackAssigneeId = slackAssigneeId;
     }
 }

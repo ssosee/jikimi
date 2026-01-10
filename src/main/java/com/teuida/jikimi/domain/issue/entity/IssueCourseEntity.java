@@ -30,21 +30,21 @@ public class IssueCourseEntity extends BaseTimeEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "issue_id", foreignKey = @ForeignKey(name = "fk_courses_01"))
-    private IssueEntity issue;
+    private IssueEntity issueEntity;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type")
     private CourseType type;
 
     @Builder
-    private IssueCourseEntity(CourseType type, IssueEntity issue) {
+    private IssueCourseEntity(CourseType type, IssueEntity issueEntity) {
         this.type = type;
-        this.issue = issue;
+        this.issueEntity = issueEntity;
     }
 
     public static IssueCourseEntity create(IssueEntity issueEntity, CourseType type) {
         return IssueCourseEntity.builder()
-                .issue(issueEntity)
+                .issueEntity(issueEntity)
                 .type(type)
                 .build();
     }

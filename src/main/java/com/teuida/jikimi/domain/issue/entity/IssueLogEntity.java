@@ -6,6 +6,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -19,7 +20,7 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
-@Table(name = "issue_logs")
+@Table(name = "issue_log")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class IssueLogEntity extends BaseTimeEntity {
     @Id
@@ -27,7 +28,7 @@ public class IssueLogEntity extends BaseTimeEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "issue_id")
+    @JoinColumn(name = "issue_id", foreignKey = @ForeignKey(name = "fk_issue_log_01"))
     private IssueEntity issue;
 
     @Enumerated(EnumType.STRING)

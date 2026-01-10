@@ -47,7 +47,7 @@ public class IssueLoggingAspect {
                     issueId, issueLogging.actionType(), slackActorId);
 
         } catch (Exception e) {
-            log.error("Failed to create IssueLog", e);
+            log.error("Failed to of IssueLog", e);
             // 예외를 다시 던지지 않음 - 로그 실패가 비즈니스 로직에 영향 없도록
         }
     }

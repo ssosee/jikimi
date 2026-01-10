@@ -61,7 +61,7 @@ public class IssueService {
                 .collect(Collectors.toSet());
         issueUsergroupEntityRepository.saveAll(usergroupEntities);
 
-        return Issue.create(issueEntity, applicationEntities, courseEntities, usergroupEntities);
+        return Issue.of(issueEntity, applicationEntities, courseEntities, usergroupEntities);
     }
 
     @Transactional
@@ -70,6 +70,30 @@ public class IssueService {
         IssueEntity findIssueEntity = issueEntityRepository.findById(issue.id())
                 .orElseThrow(() -> new NotFoundException(IssueEntity.class));
 
+        // 메시지 타임 스탬프 변경
         findIssueEntity.changeSlackMessageTs(slackMessageTs);
+    }
+
+    @Transactional
+    @IssueLogging(actionType = ActionType.ASSIGNED)
+    public Issue assign(Long issueId, String slackAssigneeId) {
+        // 이슈 조회
+        IssueEntity findIssueEntity = issueEntityRepository.findById(issueId)
+                .orElseThrow(() -> new NotFoundException(IssueEntity.class));
+
+        // 이슈 담당자 변경
+        findIssueEntity.changeSlackAssigneeId(slackAssigneeId);
+
+        // 이슈 애플리케이션 조회
+        Set<IssueApplicationEntity> findIssueApplicationEntities = issueApplicationEntityRepository.findByIssueEntity(
+                findIssueEntity);
+
+        // 이슈 코스 조회
+        Set<IssueCourseEntity> findIssueCourseEntities = issueCourseEntityRepository.findByIssueEntity(findIssueEntity);
+
+        // 이슈 유저 그룹 조회
+        Set<IssueUsergroupEntity> findIssueUsergroupEntites = issueUsergroupEntityRepository.findByIssueEntity(findIssueEntity);
+
+        return Issue.of(findIssueEntity, findIssueApplicationEntities, findIssueCourseEntities, findIssueUsergroupEntites);
     }
 }

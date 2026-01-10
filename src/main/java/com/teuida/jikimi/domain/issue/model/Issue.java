@@ -30,10 +30,10 @@ public record Issue(Long id,
                     String jiraIssueUrl,
                     String jiraAssigneeId) {
 
-    public static Issue create(IssueEntity issueEntity,
-                               Set<IssueApplicationEntity> applicationEntities,
-                               Set<IssueCourseEntity> courseEntities,
-                               Set<IssueUsergroupEntity> issueUsergroupEntities) {
+    public static Issue of(IssueEntity issueEntity,
+                           Set<IssueApplicationEntity> applicationEntities,
+                           Set<IssueCourseEntity> courseEntities,
+                           Set<IssueUsergroupEntity> issueUsergroupEntities) {
         return Issue.builder()
                 .id(issueEntity.getId())
                 .slackChannelId(issueEntity.getSlackChannelId())
@@ -52,6 +52,10 @@ public record Issue(Long id,
                 .title(issueEntity.getTitle())
                 .description(issueEntity.getDescription())
                 .userEmail(issueEntity.getUserEmail())
+                .slackAssigneeId(issueEntity.getSlackAssigneeId())
+                .jiraIssueUrl(issueEntity.getJiraIssueUrl())
+                .jiraIssueKey(issueEntity.getJiraIssueKey())
+                .slackMessageTs(issueEntity.getSlackMessageTs())
                 .build();
     }
 }

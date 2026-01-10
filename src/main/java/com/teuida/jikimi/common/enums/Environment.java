@@ -11,4 +11,9 @@ public enum Environment {
     DEV("DEV");
 
     private final String displayName;
+
+    @Override
+    public String toString() {
+        return displayName;
+    }
 }
