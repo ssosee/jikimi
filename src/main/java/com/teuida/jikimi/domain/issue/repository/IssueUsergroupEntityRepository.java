@@ -13,5 +13,5 @@ public interface IssueUsergroupEntityRepository extends JpaRepository<IssueUserg
 
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("update IssueUsergroupEntity iu set iu.deleteDateTime = :deleteDateTime where iu.issueEntity.id = :issueId")
-    void bulkDelete(Long issueId, LocalDateTime deteDateTime);
+    void bulkDelete(Long issueId, LocalDateTime deleteDateTime);
 }

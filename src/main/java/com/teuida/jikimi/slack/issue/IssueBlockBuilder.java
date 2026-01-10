@@ -173,8 +173,8 @@ public abstract class IssueBlockBuilder {
                         .blockId(String.valueOf(issue.id()))
                         .elements(asElements(
                                 assignToMeButton(),
-                                assigneeSelector(),
-                                moreOptionsMenu()
+                                assigneeSelector()
+                                //moreOptionsMenu()
                         ))
                 )
         );
@@ -222,5 +222,13 @@ public abstract class IssueBlockBuilder {
                         )
                 ))
         );
+    }
+
+    public static List<LayoutBlock> buildDeletedIssueBlocks(Issue issue, String requestUserId) {
+        return List.of(buildHeader(issue),
+                section(s -> s.text(markdownText(
+                        "🫥 *이 이슈는 삭제되었습니다.*\n" +
+                                "삭제한 사람: <@" + requestUserId + ">"
+                ))));
     }
 }

@@ -5,7 +5,7 @@ import com.teuida.jikimi.domain.issue.entity.IssueEntity;
 import com.teuida.jikimi.domain.issue.entity.IssueLogEntity;
 import com.teuida.jikimi.domain.issue.model.Issue;
 import com.teuida.jikimi.domain.issue.repository.IssueLogEntityRepository;
-import com.teuida.jikimi.domain.issue.service.dto.CreateIssueRequest;
+import com.teuida.jikimi.domain.issue.service.dto.IssueRequest;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,8 +55,8 @@ public class IssueLoggingAspect {
     private String extractSlackActorId(JoinPoint joinPoint) {
         Object[] args = joinPoint.getArgs();
         for (Object arg : args) {
-            if (arg instanceof CreateIssueRequest request) {
-                return request.slackReporterId();
+            if (arg instanceof IssueRequest request) {
+                return request.getRequestUserId();
             }
         }
         throw new IllegalStateException("CreateIssueRequest not found in method arguments");

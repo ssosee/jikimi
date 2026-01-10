@@ -69,7 +69,6 @@ abstract public class IssueModalBuilder {
                 .type(MODAL)
                 .callbackId(callbackId)
                 .privateMetadata(channelId)
-                // .botId(botId)
                 .title(viewTitle(t -> t.type(PLAIN_TEXT).text("이슈 제보")))
                 .submit(viewSubmit(s -> s.type(PLAIN_TEXT).text("제출")))
                 .close(viewClose(c -> c.type(PLAIN_TEXT).text("닫기")))
@@ -123,6 +122,9 @@ abstract public class IssueModalBuilder {
                         input(i -> i.blockId(BLOCK_USERGROUP).label(plainText("팀")).element(
                                 multiStaticSelect(m -> m.actionId(ACTION_USERGROUP)
                                         .placeholder(plainText("개발팀"))
+                                        .initialOptions(asOptions(
+                                                option(plainText("개발팀"), "S03A1B1R3JR")
+                                        ))
                                         .optionGroups(List.of(optionUsergroups))
                                 )
                         ).hint(plainText("담당팀을 선택해주세요."))),

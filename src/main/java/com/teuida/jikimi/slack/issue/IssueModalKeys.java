@@ -30,11 +30,10 @@ abstract public class IssueModalKeys {
     public static final String ACTION_SOLVE = "action_solve";
     public static final String ACTION_ASSIGN_TO_ME = "action_assign_to_me";
     public static final String ACTION_SELECT_ASSIGNEE = "select_assignee";
-    public static final String ACTION_DELETE_ISSUE = "action_delete_issue";
+
     // ===== Button Values =====
     public static final String VALUE_CREATE_TICKET = "value_create_ticket";
     public static final String VALUE_SOLVE = "value_solve";
     public static final String VALUE_ASSIGN_TO_ME = "value_assign_to_me";
     public static final String VALUE_DELETE_ISSUE = "value_delete_issue";
-    public static final String VALUE_REASSIGN = "value_reassign";
 }

@@ -88,13 +88,13 @@ public class IssueEntity extends BaseTimeEntity {
 
     public static IssueEntity create(CreateIssueRequest request) {
         return IssueEntity.builder()
-                .slackChannelId(request.slackChannelId())
-                .slackReporterId(request.slackReporterId())
-                .environment(request.environment())
+                .slackChannelId(request.getSlackChannelId())
+                .slackReporterId(request.getSlackReporterId())
+                .environment(request.getEnvironment())
                 .status(IssueStatus.OPEN)
-                .title(request.title())
-                .description(request.description())
-                .userEmail(request.userEmail())
+                .title(request.getTitle())
+                .description(request.getDescription())
+                .userEmail(request.getUserEmail())
                 .build();
     }
 

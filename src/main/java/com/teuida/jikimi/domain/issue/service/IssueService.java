@@ -16,7 +16,9 @@ import com.teuida.jikimi.domain.issue.repository.IssueCourseEntityRepository;
 import com.teuida.jikimi.domain.issue.repository.IssueEntityRepository;
 import com.teuida.jikimi.domain.issue.repository.IssueQueryRepository;
 import com.teuida.jikimi.domain.issue.repository.IssueUsergroupEntityRepository;
+import com.teuida.jikimi.domain.issue.service.dto.AssignIssueRequest;
 import com.teuida.jikimi.domain.issue.service.dto.CreateIssueRequest;
+import com.teuida.jikimi.domain.issue.service.dto.DeleteIssueRequest;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -45,21 +47,21 @@ public class IssueService {
         issueEntityRepository.save(issueEntity);
 
         // 이슈 애플리케이션 타입 저장
-        Set<ApplicationType> applicationTypes = request.applicationTypes();
+        Set<ApplicationType> applicationTypes = request.getApplicationTypes();
         Set<IssueApplicationEntity> applicationEntities = applicationTypes.stream()
                 .map(type -> IssueApplicationEntity.create(issueEntity, type))
                 .collect(Collectors.toSet());
         issueApplicationEntityRepository.saveAll(applicationEntities);
 
         // 이슈 코스 타입 저장
-        Set<CourseType> courseTypes = request.courseTypes();
+        Set<CourseType> courseTypes = request.getCourseTypes();
         Set<IssueCourseEntity> courseEntities = courseTypes.stream()
                 .map(type -> IssueCourseEntity.create(issueEntity, type))
                 .collect(Collectors.toSet());
         issueCourseEntityRepository.saveAll(courseEntities);
 
         // 이슈 팀 저장
-        Set<IssueUsergroupEntity> usergroupEntities = request.usergroupId().stream()
+        Set<IssueUsergroupEntity> usergroupEntities = request.getUsergroupIds().stream()
                 .map(usergroupId -> IssueUsergroupEntity.create(issueEntity, usergroupId))
                 .collect(Collectors.toSet());
         issueUsergroupEntityRepository.saveAll(usergroupEntities);
@@ -79,13 +81,16 @@ public class IssueService {
 
     @Transactional
     @IssueLogging(actionType = ActionType.ASSIGNED)
-    public Issue assign(Long issueId, String slackAssigneeId) {
+    public Issue assign(AssignIssueRequest request) {
+        Long issueId = request.getIssueId();
+        String requestUserId = request.getRequestUserId();
+
         // 이슈 조회
         IssueEntity findIssueEntity = issueEntityRepository.findById(issueId)
                 .orElseThrow(() -> new NotFoundException(IssueEntity.class));
 
         // 이슈 담당자 변경
-        findIssueEntity.changeSlackAssigneeId(slackAssigneeId);
+        findIssueEntity.changeSlackAssigneeId(requestUserId);
 
         // 이슈 애플리케이션 조회
         Set<IssueApplicationEntity> findIssueApplicationEntities = issueApplicationEntityRepository.findByIssueEntity(
@@ -108,9 +113,13 @@ public class IssueService {
         return Issue.from(findIssueEntity);
     }
 
+    @Deprecated
     @Transactional
     @IssueLogging(actionType = ActionType.DELETED)
-    public Issue delete(Long issueId, String slackReporterId) {
+    public Issue delete(DeleteIssueRequest request) {
+        Long issueId = request.getIssueId();
+        String requestUserId = request.getRequestUserId();
+
         // 이슈 조회
         IssueEntity findIssueEntity = issueEntityRepository.findById(issueId)
                 .orElseThrow(() -> new NotFoundException(IssueEntity.class));
@@ -121,7 +130,7 @@ public class IssueService {
         }
 
         // 이슈 제보자와 삭제 요청자가 다르면
-        if (!findIssueEntity.isEqualsSlackReporterId(slackReporterId)) {
+        if (!findIssueEntity.isEqualsSlackReporterId(requestUserId)) {
             throw new IllegalStateException("이슈 제보자만 이슈를 삭제할 수 있습니다.");
         }
 

@@ -16,6 +16,7 @@ import com.slack.api.methods.MethodsClient;
 import com.slack.api.methods.SlackApiException;
 import com.teuida.jikimi.domain.issue.model.Issue;
 import com.teuida.jikimi.domain.issue.service.IssueService;
+import com.teuida.jikimi.domain.issue.service.dto.AssignIssueRequest;
 import com.teuida.jikimi.slack.SlackHandlerRegistrar;
 import com.teuida.jikimi.slack.issue.IssueBlockBuilder;
 import com.teuida.jikimi.slack.issue.IssueModalBuilder;
@@ -41,8 +42,11 @@ public class SlackIssueActionHandler implements SlackHandlerRegistrar {
         String requestUserId = ctx.getRequestUserId();
         MethodsClient client = ctx.client();
 
+        // request 생성
+        AssignIssueRequest assignIssueRequest = AssignIssueRequest.create(requestUserId, Long.parseLong(blockId), requestUserId);
+
         // 이슈 할당
-        Issue issue = issueService.assign(Long.parseLong(blockId), requestUserId);
+        Issue issue = issueService.assign(assignIssueRequest);
 
         // 슬랙 메시지 원본 수정
         client.chatUpdate(builder -> builder
@@ -64,7 +68,7 @@ public class SlackIssueActionHandler implements SlackHandlerRegistrar {
                 .token(ctx.getBotToken())
                 .channel(issue.slackChannelId())
                 .timestamp(issue.slackMessageTs())
-                .name(":blue_loading:")
+                .name("blue_loading")
         );
 
         return ctx.ack();
@@ -78,8 +82,11 @@ public class SlackIssueActionHandler implements SlackHandlerRegistrar {
         String requestUserId = ctx.getRequestUserId();
         MethodsClient client = ctx.client();
 
+        // request 생성
+        AssignIssueRequest assignIssueRequest = AssignIssueRequest.create(requestUserId, Long.parseLong(blockId), selectedUserId);
+
         // 이슈 할당
-        Issue issue = issueService.assign(Long.parseLong(blockId), selectedUserId);
+        Issue issue = issueService.assign(assignIssueRequest);
 
         // 슬랙 메시지 원본 ️
         client.chatUpdate(builder -> builder
@@ -101,7 +108,7 @@ public class SlackIssueActionHandler implements SlackHandlerRegistrar {
                 .token(ctx.getBotToken())
                 .channel(issue.slackChannelId())
                 .timestamp(issue.slackMessageTs())
-                .name(":blue_loading:")
+                .name("blue_loading")
         );
 
         return ctx.ack();
@@ -113,13 +120,13 @@ public class SlackIssueActionHandler implements SlackHandlerRegistrar {
         String blockId = req.getPayload().getActions().getFirst().getBlockId();
 
         // 이슈 조회
-        Issue issue = issueService.getIssue(Long.parseLong(blockId));
+        Issue findIssue = issueService.getIssue(Long.parseLong(blockId));
 
         // 삭제 옵션 선택 시 삭제 확인 모달 오픈
         if (selectedOption.getValue().equals(VALUE_DELETE_ISSUE)) {
             client.viewsOpen(builder -> builder
                     .triggerId(req.getPayload().getTriggerId())
-                    .view(IssueModalBuilder.buildDeleteIssueConfirmModal(ISSUE_DELETE_CONFIRM_MODAL, issue))
+                    .view(IssueModalBuilder.buildDeleteIssueConfirmModal(ISSUE_DELETE_CONFIRM_MODAL, findIssue))
             );
         }
 

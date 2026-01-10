@@ -13,5 +13,5 @@ public interface IssueCourseEntityRepository extends JpaRepository<IssueCourseEn
 
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("update IssueCourseEntity ic set ic.deleteDateTime = :deleteDateTime where ic.issueEntity.id = :issueId")
-    void bulkDelete(Long issueId, LocalDateTime deteDateTime);
+    void bulkDelete(Long issueId, LocalDateTime deleteDateTime);
 }
