@@ -116,4 +116,20 @@ public class IssueEntity extends BaseTimeEntity {
     public boolean isEqualsSlackReporterId(String slackReporterId) {
         return this.slackReporterId.equals(slackReporterId);
     }
+
+    public boolean isEqualsSlackAssigneeId(String slackAssigneeId) {
+        return this.slackAssigneeId.equals(slackAssigneeId);
+    }
+
+    public void inProgress(String slackAssigneeId) {
+        this.status = IssueStatus.IN_PROGRESS;
+        this.slackAssigneeId = slackAssigneeId;
+    }
+
+    public void solve() {
+        if (this.slackAssigneeId == null) {
+            throw new IllegalStateException("담당자가 없는 이슈는 해결될 수 없습니다.");
+        }
+        this.status = IssueStatus.CLOSED;
+    }
 }

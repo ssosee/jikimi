@@ -1,8 +1,8 @@
 package com.teuida.jikimi.slack.issue.handler;
 
 import static com.teuida.jikimi.slack.issue.IssueModalKeys.ACTION_ASSIGN_TO_ME;
-import static com.teuida.jikimi.slack.issue.IssueModalKeys.ACTION_MORE_OPTIONS;
 import static com.teuida.jikimi.slack.issue.IssueModalKeys.ACTION_SELECT_ASSIGNEE;
+import static com.teuida.jikimi.slack.issue.IssueModalKeys.ACTION_SOLVE;
 import static com.teuida.jikimi.slack.issue.IssueModalKeys.ISSUE_DELETE_CONFIRM_MODAL;
 import static com.teuida.jikimi.slack.issue.IssueModalKeys.VALUE_DELETE_ISSUE;
 
@@ -17,6 +17,7 @@ import com.slack.api.methods.SlackApiException;
 import com.teuida.jikimi.domain.issue.model.Issue;
 import com.teuida.jikimi.domain.issue.service.IssueService;
 import com.teuida.jikimi.domain.issue.service.dto.AssignIssueRequest;
+import com.teuida.jikimi.domain.issue.service.dto.SolveIssueRequest;
 import com.teuida.jikimi.slack.SlackHandlerRegistrar;
 import com.teuida.jikimi.slack.issue.IssueBlockBuilder;
 import com.teuida.jikimi.slack.issue.IssueModalBuilder;
@@ -34,7 +35,7 @@ public class SlackIssueActionHandler implements SlackHandlerRegistrar {
     public void register(App app) {
         app.blockAction(ACTION_ASSIGN_TO_ME, this::handleAssignToMe);
         app.blockAction(ACTION_SELECT_ASSIGNEE, this::handleSelectAssignee);
-        app.blockAction(ACTION_MORE_OPTIONS, this::handleMoreOptions);
+        app.blockAction(ACTION_SOLVE, this::handleSolve);
     }
 
     public Response handleAssignToMe(BlockActionRequest req, ActionContext ctx) throws SlackApiException, IOException {
@@ -60,7 +61,7 @@ public class SlackIssueActionHandler implements SlackHandlerRegistrar {
                 .channel(issue.slackChannelId())
                 .token(ctx.getBotToken())
                 .threadTs(issue.slackMessageTs())
-                .text(String.format("🙌 <@%s>님이 본인에게 이슈를 할당 했습니다.", requestUserId))
+                .text(String.format("🙌 <@%s>님이 본인에게 이슈를 *할당* 했습니다.", requestUserId))
         );
 
         // 해당 스레드에 이모지 추가
@@ -88,7 +89,7 @@ public class SlackIssueActionHandler implements SlackHandlerRegistrar {
         // 이슈 할당
         Issue issue = issueService.assign(assignIssueRequest);
 
-        // 슬랙 메시지 원본 ️
+        // 슬랙 메시지 원본 수정
         client.chatUpdate(builder -> builder
                 .channel(issue.slackChannelId())
                 .ts(issue.slackMessageTs())
@@ -100,7 +101,7 @@ public class SlackIssueActionHandler implements SlackHandlerRegistrar {
                 .channel(issue.slackChannelId())
                 .token(ctx.getBotToken())
                 .threadTs(issue.slackMessageTs())
-                .text(String.format("🕊️ <@%s>님이 <@%s>에게 이슈를 할당 했습니다.", requestUserId, selectedUserId))
+                .text(String.format("🕊️ <@%s>님이 <@%s>에게 이슈를 *할당* 했습니다.", requestUserId, selectedUserId))
         );
 
         // 해당 스레드에 이모지 추가
@@ -129,6 +130,50 @@ public class SlackIssueActionHandler implements SlackHandlerRegistrar {
                     .view(IssueModalBuilder.buildDeleteIssueConfirmModal(ISSUE_DELETE_CONFIRM_MODAL, findIssue))
             );
         }
+
+        return ctx.ack();
+    }
+
+    public Response handleSolve(BlockActionRequest req, ActionContext ctx) throws SlackApiException, IOException {
+        String blockId = req.getPayload().getActions().getFirst().getBlockId();
+        String requestUserId = ctx.getRequestUserId();
+        MethodsClient client = ctx.client();
+
+        SolveIssueRequest solveIssueRequest = SolveIssueRequest.create(requestUserId, Long.parseLong(blockId));
+
+        // 이슈 해결
+        Issue solvedIssue = issueService.solve(solveIssueRequest);
+
+        // 해당 스레드에 이슈 해결 메시지 추가
+        client.chatPostMessage(builder -> builder
+                .channel(solvedIssue.slackChannelId())
+                .token(ctx.getBotToken())
+                .threadTs(solvedIssue.slackMessageTs())
+                .text(String.format("🎉 <@%s>님이 이슈를 *해결* 했습니다.", requestUserId))
+        );
+
+        // 슬랙 메시지 원본 수정
+        client.chatUpdate(builder -> builder
+                .channel(solvedIssue.slackChannelId())
+                .ts(solvedIssue.slackMessageTs())
+                .blocks(IssueBlockBuilder.buildIssueBlocks(solvedIssue))
+        );
+
+        // 해당 스레드에 이모지 제거
+        client.reactionsRemove(builder -> builder
+                .token(ctx.getBotToken())
+                .channel(solvedIssue.slackChannelId())
+                .timestamp(solvedIssue.slackMessageTs())
+                .name("blue_loading")
+        );
+
+        // 해당 스레드에 이모지 추가
+        client.reactionsAdd(builder -> builder
+                .token(ctx.getBotToken())
+                .channel(solvedIssue.slackChannelId())
+                .timestamp(solvedIssue.slackMessageTs())
+                .name("done")
+        );
 
         return ctx.ack();
     }

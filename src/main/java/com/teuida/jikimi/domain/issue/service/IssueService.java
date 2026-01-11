@@ -19,6 +19,7 @@ import com.teuida.jikimi.domain.issue.repository.IssueUsergroupEntityRepository;
 import com.teuida.jikimi.domain.issue.service.dto.AssignIssueRequest;
 import com.teuida.jikimi.domain.issue.service.dto.CreateIssueRequest;
 import com.teuida.jikimi.domain.issue.service.dto.DeleteIssueRequest;
+import com.teuida.jikimi.domain.issue.service.dto.SolveIssueRequest;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -89,8 +90,8 @@ public class IssueService {
         IssueEntity findIssueEntity = issueEntityRepository.findById(issueId)
                 .orElseThrow(() -> new NotFoundException(IssueEntity.class));
 
-        // 이슈 담당자 변경
-        findIssueEntity.changeSlackAssigneeId(requestUserId);
+        // 이슈 진행 상태로 변경
+        findIssueEntity.inProgress(requestUserId);
 
         // 이슈 애플리케이션 조회
         Set<IssueApplicationEntity> findIssueApplicationEntities = issueApplicationEntityRepository.findByIssueEntity(
@@ -141,5 +142,36 @@ public class IssueService {
         issueApplicationEntityRepository.bulkDelete(issueId, timeProvider.nowDateTime());
 
         return Issue.from(findIssueEntity);
+    }
+
+    @Transactional
+    @IssueLogging(actionType = ActionType.RESOLVE)
+    public Issue solve(SolveIssueRequest request) {
+        Long issueId = request.getIssueId();
+        String requestUserId = request.getRequestUserId();
+
+        // 이슈 조회
+        IssueEntity findIssueEntity = issueEntityRepository.findById(issueId)
+                .orElseThrow(() -> new NotFoundException(IssueEntity.class));
+
+        // 이슈 담당자와 삭제 요청자가 다르면
+        if (!findIssueEntity.isEqualsSlackAssigneeId(requestUserId)) {
+            throw new IllegalStateException("이슈 담당자만 이슈를 완료 할 수 있습니다.");
+        }
+
+        // 이슈 상태 변경
+        findIssueEntity.solve();
+
+        // 이슈 애플리케이션 조회
+        Set<IssueApplicationEntity> findIssueApplicationEntities = issueApplicationEntityRepository.findByIssueEntity(
+                findIssueEntity);
+
+        // 이슈 코스 조회
+        Set<IssueCourseEntity> findIssueCourseEntities = issueCourseEntityRepository.findByIssueEntity(findIssueEntity);
+
+        // 이슈 유저 그룹 조회
+        Set<IssueUsergroupEntity> findIssueUsergroupEntites = issueUsergroupEntityRepository.findByIssueEntity(findIssueEntity);
+
+        return Issue.of(findIssueEntity, findIssueApplicationEntities, findIssueCourseEntities, findIssueUsergroupEntites);
     }
 }
