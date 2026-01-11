@@ -10,25 +10,20 @@ spring:
   h2:
     console:
       enabled: true
-    #  datasource:
-    #    url: jdbc:h2:mem:test;MODE=MySQL;
-    #    username: sa
-    #    password:
-    #    driver-class-name: org.h2.Driver
+      path: /h2-console
   datasource:
-    url: jdbc:mysql://localhost:3306/teuida_slack_bot
-    username: root
-    password: rhfelfkrtm!23
-    driver-class-name: com.mysql.cj.jdbc.Driver
-
+    url: jdbc:h2:mem:test;MODE=MySQL;
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: create-drop
     open-in-view: false
     properties:
       hibernate:
         format_sql: true
         use_sql_comments: true
         default_batch_fetch_size: 1000
-        # dialect: org.hibernate.dialect.MySQL8Dialect
+        dialect: org.hibernate.dialect.MariaDBDialect
         show_sql: true

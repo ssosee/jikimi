@@ -37,5 +37,7 @@ out/
 .vscode/
 
 ### yml files ###
+src/main/resources/application-prod.yml
+src/main/resources/application-local-discovery.yml
 src/main/resources/application-slack.yml
 src/main/resources/application-jira.yml
