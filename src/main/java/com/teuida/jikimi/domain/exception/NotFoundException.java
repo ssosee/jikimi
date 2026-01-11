@@ -1,6 +1,6 @@
 package com.teuida.jikimi.domain.exception;
 
-public class NotFoundException extends RuntimeException {
+public class NotFoundException extends BusinessException {
     public NotFoundException(String message) {
         super(message);
     }
@@ -10,6 +10,6 @@ public class NotFoundException extends RuntimeException {
     }
 
     public NotFoundException(Class<?> clazz) {
-        super(String.format("%s Not Found", clazz.getSimpleName()));
+        super(String.format("%s을(를) 찾을 수 없습니다.", clazz.getSimpleName()));
     }
 }

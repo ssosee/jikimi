@@ -5,6 +5,8 @@ import com.teuida.jikimi.common.annotation.IssueLogging;
 import com.teuida.jikimi.common.enums.ActionType;
 import com.teuida.jikimi.common.enums.ApplicationType;
 import com.teuida.jikimi.common.enums.CourseType;
+import com.teuida.jikimi.domain.exception.IssueAccessDeniedException;
+import com.teuida.jikimi.domain.exception.IssueStateException;
 import com.teuida.jikimi.domain.exception.NotFoundException;
 import com.teuida.jikimi.domain.issue.entity.IssueApplicationEntity;
 import com.teuida.jikimi.domain.issue.entity.IssueCourseEntity;
@@ -127,12 +129,12 @@ public class IssueService {
 
         // 이슈가 완료된 상태이면
         if (findIssueEntity.isClosed()) {
-            throw new IllegalStateException("완료된 이슈는 삭제할 수 없습니다.");
+            throw new IssueStateException("완료된 이슈는 삭제할 수 없습니다.");
         }
 
         // 이슈 제보자와 삭제 요청자가 다르면
         if (!findIssueEntity.isEqualsSlackReporterId(requestUserId)) {
-            throw new IllegalStateException("이슈 제보자만 이슈를 삭제할 수 있습니다.");
+            throw new IssueAccessDeniedException("이슈 제보자만 이슈를 삭제할 수 있습니다.");
         }
 
         // 이슈 삭제
@@ -156,7 +158,7 @@ public class IssueService {
 
         // 이슈 담당자와 삭제 요청자가 다르면
         if (!findIssueEntity.isEqualsSlackAssigneeId(requestUserId)) {
-            throw new IllegalStateException("이슈 담당자만 이슈를 완료 할 수 있습니다.");
+            throw new IssueAccessDeniedException("이슈 담당자만 이슈를 완료 할 수 있습니다.");
         }
 
         // 이슈 상태 변경

@@ -17,7 +17,15 @@ public final class SlackValueParser {
      */
     public static String extractString(Map<String, Map<String, Value>> values,
                                        String blockId, String actionId) {
-        return values.get(blockId).get(actionId).getValue();
+        try {
+            String value = values.get(blockId).get(actionId).getValue();
+            if (value == null || value.isBlank()) {
+                throw new IllegalArgumentException(blockId + " 필드는 필수입니다");
+            }
+            return value;
+        } catch (NullPointerException e) {
+            throw new IllegalArgumentException(blockId + " 필드를 찾을 수 없습니다", e);
+        }
     }
 
     /**
@@ -25,10 +33,14 @@ public final class SlackValueParser {
      */
     public static Optional<String> extractOptionalString(Map<String, Map<String, Value>> values,
                                                          String blockId, String actionId) {
-        return Optional.ofNullable(values.get(blockId))
-                .map(block -> block.get(actionId))
-                .map(Value::getValue)
-                .filter(s -> !s.isBlank());
+        try {
+            return Optional.ofNullable(values.get(blockId))
+                    .map(block -> block.get(actionId))
+                    .map(Value::getValue)
+                    .filter(s -> !s.isBlank());
+        } catch (Exception e) {
+            return Optional.empty();
+        }
     }
 
     /**
@@ -37,11 +49,18 @@ public final class SlackValueParser {
     public static <E extends Enum<E>> E extractEnum(Map<String, Map<String, Value>> values,
                                                     String blockId, String actionId,
                                                     Class<E> enumClass) {
-        String value = values.get(blockId)
-                .get(actionId)
-                .getSelectedOption()
-                .getValue();
-        return Enum.valueOf(enumClass, value);
+        try {
+            String value = values.get(blockId)
+                    .get(actionId)
+                    .getSelectedOption()
+                    .getValue();
+            if (value == null) {
+                throw new IllegalArgumentException(blockId + " 필드는 필수입니다");
+            }
+            return Enum.valueOf(enumClass, value);
+        } catch (NullPointerException e) {
+            throw new IllegalArgumentException(blockId + " 필드를 찾을 수 없습니다", e);
+        }
     }
 
     /**
@@ -50,12 +69,21 @@ public final class SlackValueParser {
     public static <E extends Enum<E>> Set<E> extractEnumSet(Map<String, Map<String, Value>> values,
                                                             String blockId, String actionId,
                                                             Class<E> enumClass) {
-        return values.get(blockId)
-                .get(actionId)
-                .getSelectedOptions()
-                .stream()
-                .map(opt -> Enum.valueOf(enumClass, opt.getValue()))
-                .collect(Collectors.toSet());
+        try {
+            Set<E> result = values.get(blockId)
+                    .get(actionId)
+                    .getSelectedOptions()
+                    .stream()
+                    .map(opt -> Enum.valueOf(enumClass, opt.getValue()))
+                    .collect(Collectors.toSet());
+
+            if (result.isEmpty()) {
+                throw new IllegalArgumentException(blockId + " 필드에서 최소 1개를 선택해야 합니다");
+            }
+            return result;
+        } catch (NullPointerException e) {
+            throw new IllegalArgumentException(blockId + " 필드를 찾을 수 없습니다", e);
+        }
     }
 
     /**
@@ -63,12 +91,21 @@ public final class SlackValueParser {
      */
     public static Set<String> extractStringSet(Map<String, Map<String, Value>> values,
                                                String blockId, String actionId) {
-        return values.get(blockId)
-                .get(actionId)
-                .getSelectedOptions()
-                .stream()
-                .map(SelectedOption::getValue)
-                .collect(Collectors.toSet());
+        try {
+            Set<String> result = values.get(blockId)
+                    .get(actionId)
+                    .getSelectedOptions()
+                    .stream()
+                    .map(SelectedOption::getValue)
+                    .collect(Collectors.toSet());
+
+            if (result.isEmpty()) {
+                throw new IllegalArgumentException(blockId + " 필드에서 최소 1개를 선택해야 합니다");
+            }
+            return result;
+        } catch (NullPointerException e) {
+            throw new IllegalArgumentException(blockId + " 필드를 찾을 수 없습니다", e);
+        }
     }
 
     /**
@@ -77,12 +114,16 @@ public final class SlackValueParser {
     public static <E extends Enum<E>> Set<E> extractOptionalEnumSet(Map<String, Map<String, Value>> values,
                                                                     String blockId, String actionId,
                                                                     Class<E> enumClass) {
-        return Optional.ofNullable(values.get(blockId))
-                .map(block -> block.get(actionId))
-                .map(Value::getSelectedOptions)
-                .map(options -> options.stream()
-                        .map(opt -> Enum.valueOf(enumClass, opt.getValue()))
-                        .collect(Collectors.toSet()))
-                .orElse(Set.of());
+        try {
+            return Optional.ofNullable(values.get(blockId))
+                    .map(block -> block.get(actionId))
+                    .map(Value::getSelectedOptions)
+                    .map(options -> options.stream()
+                            .map(opt -> Enum.valueOf(enumClass, opt.getValue()))
+                            .collect(Collectors.toSet()))
+                    .orElse(Set.of());
+        } catch (Exception e) {
+            return Set.of();
+        }
     }
 }
