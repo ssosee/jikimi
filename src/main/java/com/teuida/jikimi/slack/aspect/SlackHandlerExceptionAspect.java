@@ -28,9 +28,9 @@ public class SlackHandlerExceptionAspect {
     private final SlackExceptionHandler slackExceptionHandler;
 
     /**
-     * Slack 핸들러 서비스 메서드를 가로채서 예외 처리 패턴: IssueHandlerService의 모든 public 메서드
+     * Slack 핸들러 서비스 메서드를 가로채서 예외 처리 패턴: IssueXXXHandlerService의 모든 public 메서드
      */
-    @Around("execution(public * com.teuida.jikimi.slack.issue.service.IssueHandlerService.*(..))")
+    @Around("execution(public * com.teuida.jikimi.slack.issue.service..*.*(..))")
     public Object handleSlackHandlerException(ProceedingJoinPoint joinPoint) throws Throwable {
         try {
             // 정상 실행

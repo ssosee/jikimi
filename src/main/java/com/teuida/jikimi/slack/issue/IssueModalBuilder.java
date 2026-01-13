@@ -91,7 +91,7 @@ abstract public class IssueModalBuilder {
                                                 option(plainText(CourseType.ALL.toString()), CourseType.ALL.name())))
                                         .options(createOptions(CourseType.class))
                                 )
-                        ).hint(plainText("코스를 선택해주세요."))),
+                        ).hint(plainText("코스를 선택해주세요(*ALL 을 선택하면 다른 코스를 선택할 수 없습니다.)"))),
 
                         // 3. 애플리케이션 종류
                         input(i -> i.blockId(BLOCK_APPLICATION_TYPE).label(plainText("애플리케이션 종류")).element(

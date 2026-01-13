@@ -15,4 +15,3 @@ public class SlackServletConfig {
         return new ServletRegistrationBean<>(servlet, "/slack/events");
     }
 }
-

@@ -86,14 +86,14 @@ public class IssueService {
     @IssueLogging(actionType = ActionType.ASSIGNED)
     public Issue assign(AssignIssueRequest request) {
         Long issueId = request.getIssueId();
-        String requestUserId = request.getRequestUserId();
+        String slackAssigneeId = request.getSlackAssigneeId();
 
         // 이슈 조회
         IssueEntity findIssueEntity = issueEntityRepository.findById(issueId)
                 .orElseThrow(() -> new NotFoundException(IssueEntity.class));
 
         // 이슈 진행 상태로 변경
-        findIssueEntity.inProgress(requestUserId);
+        findIssueEntity.inProgress(slackAssigneeId);
 
         // 이슈 애플리케이션 조회
         Set<IssueApplicationEntity> findIssueApplicationEntities = issueApplicationEntityRepository.findByIssueEntity(

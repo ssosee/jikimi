@@ -10,7 +10,7 @@ import java.util.List;
 
 public class SlackErrorMessageBuilder {
 
-    private static final int MAX_MESSAGE_LENGTH = 3000;
+    private static final int MAX_MESSAGE_LENGTH = 150;
 
     private SlackErrorMessageBuilder() {
     }
@@ -24,7 +24,7 @@ public class SlackErrorMessageBuilder {
         String message = truncateIfNeeded(exception.getUserMessage());
         blocks.add(SectionBlock.builder()
                 .text(MarkdownTextObject.builder()
-                        .text(":sadblob: *헉.. 처리하는 과정에서 발생했습니다*\n" + message)
+                        .text(":sadblob: *헉.. 처리하는 과정에서 에러가 발생했습니다*\n" + message)
                         .build())
                 .build());
 
@@ -41,7 +41,7 @@ public class SlackErrorMessageBuilder {
         exception.getViolations().forEach(violation -> {
             String fieldName = violation.getPropertyPath().toString();
             String message = violation.getMessage();
-            sb.append(String.format("• *%s*: %s\n", fieldName, message));
+            sb.append(String.format("*%s*: %s\n", fieldName, message));
         });
 
         String message = truncateIfNeeded(sb.toString());
@@ -62,7 +62,7 @@ public class SlackErrorMessageBuilder {
 
         blocks.add(SectionBlock.builder()
                 .text(MarkdownTextObject.builder()
-                        .text(":alarms: *예상하지 못한 오류가 발생했습니다*\n잠시 후 다시 시도해주세요...")
+                        .text(":alarms: *예상하지 못한 오류가 발생했습니다*\n잠시 후 다시 시도해주세요...\n\n" + truncateIfNeeded(exception.getMessage()))
                         .build())
                 .build());
 
@@ -74,7 +74,7 @@ public class SlackErrorMessageBuilder {
      */
     private static String truncateIfNeeded(String message) {
         if (message.length() > MAX_MESSAGE_LENGTH) {
-            return message.substring(0, MAX_MESSAGE_LENGTH - 3) + "...";
+            return message.substring(0, MAX_MESSAGE_LENGTH) + "...";
         }
         return message;
     }
