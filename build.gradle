@@ -50,11 +50,6 @@ dependencies {
     // Slack SDK - 최신 버전
     implementation 'com.slack.api:bolt-jakarta-servlet:1.45.3'
 
-    // Jira API (WebClient 사용 권장)
-    implementation 'com.atlassian.jira:jira-rest-java-client-core:7.0.1'
-    implementation 'com.atlassian.jira:jira-rest-java-client-api:7.0.1'
-    compileOnly 'io.atlassian.fugue:fugue:6.1.2'
-
     // 테스트
     testImplementation 'org.springframework.boot:spring-boot-restdocs'
     testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'

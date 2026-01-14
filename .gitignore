@@ -42,3 +42,5 @@ src/main/resources/application-local.yml
 src/main/resources/application-local-discovery.yml
 src/main/resources/application-slack.yml
 src/main/resources/application-jira.yml
+src/test/resources/application-slack.yml
+src/test/resources/application-jira.yml
