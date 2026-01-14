@@ -28,6 +28,7 @@ repositories {
 
 ext {
     set('snippetsDir', file("build/generated-snippets"))
+    springCloudVersion = "2025.1.0"
 }
 
 dependencies {
@@ -36,6 +37,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
     implementation 'org.springframework.boot:spring-boot-starter-aspectj'
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
     runtimeOnly 'com.h2database:h2'
@@ -82,4 +84,9 @@ tasks.withType(JavaCompile).configureEach {
 
 clean {
     delete file(querydslDir)
+}
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:$springCloudVersion"
+    }
 }

@@ -1,0 +1,56 @@
+package com.teuida.jikimi.jira.client;
+
+import com.teuida.jikimi.jira.client.dto.request.CreateJiraIssueRequest;
+import com.teuida.jikimi.jira.client.dto.response.JiraIssueResponse;
+import com.teuida.jikimi.jira.client.dto.response.JiraUserResponse;
+import com.teuida.jikimi.jira.config.JiraFeignConfig;
+import java.util.List;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+
+/**
+ * <p>참고</p>
+ * <a href="https://developer.atlassian.com/cloud/jira/platform/rest/v3/intro/">jira api docs</a>
+ */
+@FeignClient(
+        name = "jira-api",
+        url = "${jira.url}",
+        configuration = JiraFeignConfig.class
+)
+public interface JiraApiClient {
+
+    /**
+     * <a
+     * href="https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-user-search/#api-rest-api-3-user-search-query-get">고급
+     * 검색 (정확한 매칭 필요 시) GDPR 준수: 이메일로 정확한 accountId 조회</a>
+     */
+    @GetMapping("/rest/api/3/user/search/query")
+    List<JiraUserResponse> searchUsersWithQuery(
+            @RequestParam("query") String query,
+            @RequestParam(value = "startAt", defaultValue = "0") int startAt,
+            @RequestParam(value = "maxResults", defaultValue = "50") int maxResults
+    );
+
+    /**
+     * <a
+     * href="https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-user-search/#api-rest-api-3-user-search-query-get">단순
+     * 검색 (자동완성, 추천 등) 사용자 선택 UI에서 이름 일부로 검색</a>
+     */
+    @GetMapping("/rest/api/3/user/search")
+    List<JiraUserResponse> searchUsers(
+            @RequestParam(value = "query", required = false) String query,
+            @RequestParam(value = "accountId", required = false) String accountId,
+            @RequestParam(value = "startAt", defaultValue = "0") int startAt,
+            @RequestParam(value = "maxResults", defaultValue = "50") int maxResults
+    );
+
+    /**
+     * <a href="https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issues/#api-rest-api-3-issue-post">티켓
+     * 생성</a>
+     */
+    @PostMapping("/rest/api/3/issue")
+    JiraIssueResponse createIssue(@RequestBody CreateJiraIssueRequest request);
+}

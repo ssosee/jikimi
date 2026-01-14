@@ -105,10 +105,6 @@ public class IssueEntity extends BaseTimeEntity {
         this.slackMessageTs = slackMessageTs;
     }
 
-    public void changeSlackAssigneeId(String slackAssigneeId) {
-        this.slackAssigneeId = slackAssigneeId;
-    }
-
     public boolean isClosed() {
         return this.status == IssueStatus.CLOSED;
     }
@@ -131,5 +127,9 @@ public class IssueEntity extends BaseTimeEntity {
             throw new IllegalStateException("담당자가 없는 이슈는 해결될 수 없습니다.");
         }
         this.status = IssueStatus.CLOSED;
+    }
+
+    public String toJiraLink() {
+        return String.format("<%s|%s>", this.jiraIssueUrl, this.jiraIssueKey);
     }
 }

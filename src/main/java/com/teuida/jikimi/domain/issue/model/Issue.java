@@ -76,4 +76,14 @@ public record Issue(Long id,
                 .jiraAssigneeId(issueEntity.getJiraAssigneeId())
                 .build();
     }
+
+    public String getSlackThreadUrl(String workspaceUrl) {
+        // 포맷: https://{workspace}.slack.com/archives/{channelId}/p{timestamp(점제거)}
+        String tsNoDot = this.slackMessageTs.replace(".", "");
+        return String.format("%s/archives/%s/p%s", workspaceUrl, this.slackChannelId, tsNoDot);
+    }
+
+    public boolean isEqualsSlackAssigneeId(String slackAssigneeId) {
+        return this.slackAssigneeId.equals(slackAssigneeId);
+    }
 }
