@@ -47,10 +47,10 @@ public class IssueEntity extends BaseTimeEntity {
     @Column(name = "user_email", length = 50)
     private String userEmail;
 
-    @Column(name = "slack_reporter_id")
+    @Column(name = "slack_reporter_id", nullable = false, length = 50)
     private String slackReporterId;
 
-    @Column(name = "slack_assignee_id")
+    @Column(name = "slack_assignee_id", length = 50)
     private String slackAssigneeId;
 
     @Column(name = "slack_channel_id")
@@ -65,7 +65,7 @@ public class IssueEntity extends BaseTimeEntity {
     @Column(name = "jira_issue_url")
     private String jiraIssueUrl;
 
-    @Column(name = "jira_assignee_id")
+    @Column(name = "jira_assignee_id", length = 50)
     private String jiraAssigneeId;
 
     @Builder

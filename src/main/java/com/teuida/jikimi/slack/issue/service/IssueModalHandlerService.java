@@ -1,17 +1,13 @@
 package com.teuida.jikimi.slack.issue.service;
 
-import static com.teuida.jikimi.slack.issue.IssueBlockBuilder.buildDeletedIssueBlocks;
-
 import com.slack.api.bolt.context.builtin.ViewSubmissionContext;
 import com.slack.api.bolt.request.builtin.ViewSubmissionRequest;
 import com.slack.api.bolt.response.Response;
-import com.slack.api.methods.MethodsClient;
 import com.slack.api.methods.SlackApiException;
 import com.slack.api.methods.response.chat.ChatPostMessageResponse;
 import com.teuida.jikimi.domain.issue.model.Issue;
 import com.teuida.jikimi.domain.issue.service.IssueService;
 import com.teuida.jikimi.domain.issue.service.dto.CreateIssueRequest;
-import com.teuida.jikimi.domain.issue.service.dto.DeleteIssueRequest;
 import com.teuida.jikimi.slack.issue.IssueBlockBuilder;
 import com.teuida.jikimi.slack.util.RequestValidator;
 import java.io.IOException;
@@ -35,9 +31,9 @@ public class IssueModalHandlerService {
 
         // 채널에 메시지 전송
         ChatPostMessageResponse response = ctx.client().chatPostMessage(builder -> builder
-                .channel(issue.slackChannelId())
+                .channel(issue.getSlackContext().getChannelId())
                 .blocks(IssueBlockBuilder.buildIssueBlocks(issue))
-                .text(String.format("%s 이슈가 등록되었습니다.", issue.title()))
+                .text(String.format("%s 이슈가 등록되었습니다.", issue.getTitle()))
                 .unfurlLinks(false)
                 .unfurlMedia(false)
         );
@@ -46,29 +42,6 @@ public class IssueModalHandlerService {
             String messageTs = response.getMessage().getTs();
             issueService.updateIssue(issue, messageTs);
         }
-
-        return ctx.ack();
-    }
-
-    public Response handleDeleteIssue(ViewSubmissionRequest req, ViewSubmissionContext ctx)
-            throws SlackApiException, IOException {
-        String issueId = req.getPayload().getView().getPrivateMetadata();
-        MethodsClient client = ctx.client();
-        String requestUserId = ctx.getRequestUserId();
-
-        // request 생성 및 검증
-        DeleteIssueRequest deleteIssueRequest = DeleteIssueRequest.create(requestUserId,
-                Long.parseLong(issueId), requestValidator);
-
-        // 이슈 삭제
-        Issue deletedIssue = issueService.delete(deleteIssueRequest);
-
-        // 슬랙 메시지 원본 수정
-        client.chatUpdate(builder -> builder
-                .channel(deletedIssue.slackChannelId())
-                .ts(deletedIssue.slackMessageTs())
-                .blocks(buildDeletedIssueBlocks(deletedIssue, requestUserId))
-        );
 
         return ctx.ack();
     }

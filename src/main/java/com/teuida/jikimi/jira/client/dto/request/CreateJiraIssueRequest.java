@@ -15,7 +15,7 @@ public record CreateJiraIssueRequest(Fields fields) {
                 Fields.builder()
                         .project(new ProjectRef(projectKey))
                         .issuetype(new IssueTypeRef("Bug"))
-                        .summary(issue.title())
+                        .summary(issue.getTitle())
                         .description(createDescription(issue, slackWorkspaceUrl))
                         .assignee(new UserRef(jiraAccountId))
                         .reporter(new UserRef(jiraAccountId))
@@ -27,23 +27,23 @@ public record CreateJiraIssueRequest(Fields fields) {
         return new AdfDocument(List.of(
                 // 환경
                 createHeading("환경"),
-                createParagraph("PROD".equals(issue.environment().name()) ? "PROD" : issue.environment().name()),
+                createParagraph("PROD".equals(issue.getEnvironment().name()) ? "PROD" : issue.getEnvironment().name()),
 
                 // 애플리케이션
                 createHeading("애플리케이션"),
-                createParagraph(formatApplicationTypes(issue.applicationTypes())),
+                createParagraph(formatApplicationTypes(issue.getApplicationTypes())),
 
                 // 코스
                 createHeading("코스"),
-                createParagraph(formatCourseTypes(issue.courseTypes())),
+                createParagraph(formatCourseTypes(issue.getCourseTypes())),
 
                 // 제보자
                 createHeading("제보자"),
-                createParagraph(issue.userEmail() != null ? issue.userEmail() : "-"),
+                createParagraph(issue.getUserEmail() != null ? issue.getUserEmail() : "-"),
 
                 // 이슈 내용
                 createHeading("이슈 내용"),
-                createParagraph(issue.description()),
+                createParagraph(issue.getDescription()),
 
                 // 관련 스레드
                 createHeading("관련 스레드"),

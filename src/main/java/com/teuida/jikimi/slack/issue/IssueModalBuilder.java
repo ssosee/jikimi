@@ -139,18 +139,18 @@ abstract public class IssueModalBuilder {
 
     public static View buildDeleteIssueConfirmModal(String callbackId, Issue issue) {
 
-        String descriptionPreview = issue.description().substring(0, Math.min(20, issue.description().length()));
+        String descriptionPreview = issue.getDescription().substring(0, Math.min(20, issue.getDescription().length()));
 
         return view(view -> view.type(MODAL)
                 .callbackId(callbackId)
-                .privateMetadata(String.valueOf(issue.id()))
+                .privateMetadata(String.valueOf(issue.getId()))
                 .title(viewTitle(t -> t.type(PLAIN_TEXT).text("이슈 삭제")))
                 .close(viewClose(c -> c.type(PLAIN_TEXT).text("취소")))
                 .submit(viewSubmit(s -> s.type(PLAIN_TEXT).text("삭제")))
                 .blocks(asBlocks(
                         header(h -> h.text(plainText(":warning: 이슈를 삭제하시겠습니까?"))),
                         section(s -> s.text(markdownText(
-                                "*이슈 제목*: " + issue.title() + "\n" +
+                                "*이슈 제목*: " + issue.getTitle() + "\n" +
                                         "*이슈 내용*: " + descriptionPreview + "...\n\n" +
                                         "_삭제된 이슈는 복구할 수 없습니다._"
                         )))

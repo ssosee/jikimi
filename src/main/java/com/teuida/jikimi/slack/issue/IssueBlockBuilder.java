@@ -4,29 +4,23 @@ import static com.slack.api.model.block.Blocks.actions;
 import static com.slack.api.model.block.Blocks.divider;
 import static com.slack.api.model.block.Blocks.header;
 import static com.slack.api.model.block.Blocks.section;
-import static com.slack.api.model.block.composition.BlockCompositions.asOptions;
 import static com.slack.api.model.block.composition.BlockCompositions.markdownText;
-import static com.slack.api.model.block.composition.BlockCompositions.option;
 import static com.slack.api.model.block.composition.BlockCompositions.plainText;
 import static com.slack.api.model.block.element.BlockElements.asElements;
 import static com.slack.api.model.block.element.BlockElements.button;
-import static com.slack.api.model.block.element.BlockElements.overflowMenu;
 import static com.slack.api.model.block.element.BlockElements.usersSelect;
 import static com.teuida.jikimi.slack.issue.IssueModalKeys.ACTION_ASSIGN_TO_ME;
 import static com.teuida.jikimi.slack.issue.IssueModalKeys.ACTION_CREATE_TICKET;
-import static com.teuida.jikimi.slack.issue.IssueModalKeys.ACTION_MORE_OPTIONS;
 import static com.teuida.jikimi.slack.issue.IssueModalKeys.ACTION_SELECT_ASSIGNEE;
 import static com.teuida.jikimi.slack.issue.IssueModalKeys.ACTION_SOLVE;
 import static com.teuida.jikimi.slack.issue.IssueModalKeys.VALUE_ASSIGN_TO_ME;
 import static com.teuida.jikimi.slack.issue.IssueModalKeys.VALUE_CREATE_TICKET;
-import static com.teuida.jikimi.slack.issue.IssueModalKeys.VALUE_DELETE_ISSUE;
 import static com.teuida.jikimi.slack.issue.IssueModalKeys.VALUE_SOLVE;
 
 import com.slack.api.model.block.HeaderBlock;
 import com.slack.api.model.block.LayoutBlock;
 import com.slack.api.model.block.SectionBlock;
 import com.slack.api.model.block.element.ButtonElement;
-import com.slack.api.model.block.element.OverflowMenuElement;
 import com.slack.api.model.block.element.UsersSelectElement;
 import com.teuida.jikimi.common.enums.ApplicationType;
 import com.teuida.jikimi.common.enums.CourseType;
@@ -54,7 +48,7 @@ public abstract class IssueBlockBuilder {
         blocks.add(buildImageUploadGuide());
 
         // 액션 버튼 (상태에 따라)
-        if (issue.status() != IssueStatus.CLOSED) {
+        if (issue.getStatus() != IssueStatus.CLOSED) {
             blocks.addAll(buildActionButtons(issue));
         }
 
@@ -65,7 +59,7 @@ public abstract class IssueBlockBuilder {
     private static HeaderBlock buildHeader(Issue issue) {
         return header(h -> h.text(plainText(pt -> pt
                 .emoji(true)
-                .text(String.format(":alert: %s :rainbow-right:", issue.title()))
+                .text(String.format(":alert: %s :rainbow-right:", issue.getTitle()))
         )));
     }
 
@@ -74,40 +68,40 @@ public abstract class IssueBlockBuilder {
         return List.of(
                 buildEnvironmentAndApplicationRow(issue),
                 buildCourseAndReporterRow(issue),
-                buildTeamAndAssigneeRow(issue),
+                buildTeamAndAssigneeRow(issue.getSlackContext()),
                 buildEmailRow(issue)
         );
     }
 
     private static SectionBlock buildEnvironmentAndApplicationRow(Issue issue) {
-        String applications = issue.applicationTypes().stream()
+        String applications = issue.getApplicationTypes().stream()
                 .map(ApplicationType::getDisplayName)
                 .collect(Collectors.joining(", "));
 
         return section(s -> s.fields(List.of(
-                markdownText("*환경:* `" + issue.environment() + "`"),
+                markdownText("*환경:* `" + issue.getEnvironment() + "`"),
                 markdownText("*애플리케이션:* " + applications)
         )));
     }
 
     private static SectionBlock buildCourseAndReporterRow(Issue issue) {
-        String courses = issue.courseTypes().stream()
+        String courses = issue.getCourseTypes().stream()
                 .map(CourseType::getDisplayName)
                 .collect(Collectors.joining(", "));
 
         return section(s -> s.fields(List.of(
                 markdownText("*코스:* " + courses),
-                markdownText("*제보자:* <@" + issue.slackReporterId() + ">")
+                markdownText("*제보자:* <@" + issue.getSlackContext().getReporterId() + ">")
         )));
     }
 
-    private static SectionBlock buildTeamAndAssigneeRow(Issue issue) {
-        String usergroups = issue.slackAssignedUsergroupIds().stream()
+    private static SectionBlock buildTeamAndAssigneeRow(Issue.SlackContext slackContext) {
+        String usergroups = slackContext.getAssignedUsergroupIds().stream()
                 .map(id -> "<!subteam^" + id + ">")
                 .collect(Collectors.joining(", "));
 
-        String assignee = issue.slackAssigneeId() != null
-                ? "<@" + issue.slackAssigneeId() + ">"
+        String assignee = slackContext.getAssigneeId() != null
+                ? "<@" + slackContext.getAssigneeId() + ">"
                 : "-";
 
         return section(s -> s.fields(List.of(
@@ -117,7 +111,7 @@ public abstract class IssueBlockBuilder {
     }
 
     private static SectionBlock buildEmailRow(Issue issue) {
-        String email = issue.userEmail() != null ? issue.userEmail() : "-";
+        String email = issue.getUserEmail() != null ? issue.getUserEmail() : "-";
         return section(s -> s.fields(List.of(
                 markdownText("*이메일:* " + email)
         )));
@@ -130,7 +124,7 @@ public abstract class IssueBlockBuilder {
                         .emoji(true)
                         .text("✏️ 이슈 내용")
                 ))),
-                section(s -> s.text(markdownText(issue.description())))
+                section(s -> s.text(markdownText(issue.getDescription())))
         );
     }
 
@@ -142,7 +136,7 @@ public abstract class IssueBlockBuilder {
 
     // ========== 액션 버튼 ==========
     private static List<LayoutBlock> buildActionButtons(Issue issue) {
-        if (StringUtils.hasText(issue.slackAssigneeId())) {
+        if (StringUtils.hasText(issue.getSlackContext().getAssigneeId())) {
             return buildAssignedActions(issue);
         } else {
             return buildUnassignedActions(issue);
@@ -155,7 +149,7 @@ public abstract class IssueBlockBuilder {
                         .text("👇 이슈에 대해 다음 작업을 선택하세요.")
                 ))),
                 actions(a -> a
-                        .blockId(String.valueOf(issue.id()))
+                        .blockId(String.valueOf(issue.getId()))
                         .elements(asElements(
                                 createTicketButton(),
                                 solveButton()
@@ -170,11 +164,10 @@ public abstract class IssueBlockBuilder {
                         .text("👇 아래 버튼을 눌러 담당자를 지정하세요.")
                 ))),
                 actions(a -> a
-                        .blockId(String.valueOf(issue.id()))
+                        .blockId(String.valueOf(issue.getId()))
                         .elements(asElements(
                                 assignToMeButton(),
                                 assigneeSelector()
-                                //moreOptionsMenu()
                         ))
                 )
         );
@@ -210,25 +203,5 @@ public abstract class IssueBlockBuilder {
                 .placeholder(plainText("할당할 팀원 ..."))
                 .actionId(ACTION_SELECT_ASSIGNEE)
         );
-    }
-
-    private static OverflowMenuElement moreOptionsMenu() {
-        return overflowMenu(o -> o
-                .actionId(ACTION_MORE_OPTIONS)
-                .options(asOptions(
-                        option(opt -> opt
-                                .text(plainText(":delete: 삭제"))
-                                .value(VALUE_DELETE_ISSUE)
-                        )
-                ))
-        );
-    }
-
-    public static List<LayoutBlock> buildDeletedIssueBlocks(Issue issue, String requestUserId) {
-        return List.of(buildHeader(issue),
-                section(s -> s.text(markdownText(
-                        "🫥 *이 이슈는 삭제되었습니다.*\n" +
-                                "삭제한 사람: <@" + requestUserId + ">"
-                ))));
     }
 }

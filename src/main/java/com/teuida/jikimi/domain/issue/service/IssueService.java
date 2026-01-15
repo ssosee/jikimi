@@ -1,12 +1,10 @@
 package com.teuida.jikimi.domain.issue.service;
 
-import com.teuida.jikimi.common.TimeProvider;
 import com.teuida.jikimi.common.annotation.IssueLogging;
 import com.teuida.jikimi.common.enums.ActionType;
 import com.teuida.jikimi.common.enums.ApplicationType;
 import com.teuida.jikimi.common.enums.CourseType;
 import com.teuida.jikimi.domain.exception.IssueAccessDeniedException;
-import com.teuida.jikimi.domain.exception.IssueStateException;
 import com.teuida.jikimi.domain.exception.NotFoundException;
 import com.teuida.jikimi.domain.issue.entity.IssueApplicationEntity;
 import com.teuida.jikimi.domain.issue.entity.IssueCourseEntity;
@@ -20,7 +18,6 @@ import com.teuida.jikimi.domain.issue.repository.IssueQueryRepository;
 import com.teuida.jikimi.domain.issue.repository.IssueUsergroupEntityRepository;
 import com.teuida.jikimi.domain.issue.service.dto.AssignIssueRequest;
 import com.teuida.jikimi.domain.issue.service.dto.CreateIssueRequest;
-import com.teuida.jikimi.domain.issue.service.dto.DeleteIssueRequest;
 import com.teuida.jikimi.domain.issue.service.dto.SolveIssueRequest;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -32,8 +29,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class IssueService {
-
-    private final TimeProvider timeProvider;
 
     private final IssueQueryRepository issueQueryRepository;
     private final IssueEntityRepository issueEntityRepository;
@@ -75,7 +70,7 @@ public class IssueService {
     @Transactional
     public void updateIssue(Issue issue, String slackMessageTs) {
         // 이슈 조회
-        IssueEntity findIssueEntity = issueEntityRepository.findById(issue.id())
+        IssueEntity findIssueEntity = issueEntityRepository.findById(issue.getId())
                 .orElseThrow(() -> new NotFoundException(IssueEntity.class));
 
         // 메시지 타임 스탬프 변경
@@ -112,36 +107,6 @@ public class IssueService {
         // 이슈 조회
         IssueEntity findIssueEntity = issueEntityRepository.findById(issueId)
                 .orElseThrow(() -> new NotFoundException(IssueEntity.class));
-
-        return Issue.from(findIssueEntity);
-    }
-
-    @Deprecated
-    @Transactional
-    @IssueLogging(actionType = ActionType.DELETED)
-    public Issue delete(DeleteIssueRequest request) {
-        Long issueId = request.getIssueId();
-        String requestUserId = request.getRequestUserId();
-
-        // 이슈 조회
-        IssueEntity findIssueEntity = issueEntityRepository.findById(issueId)
-                .orElseThrow(() -> new NotFoundException(IssueEntity.class));
-
-        // 이슈가 완료된 상태이면
-        if (findIssueEntity.isClosed()) {
-            throw new IssueStateException("완료된 이슈는 삭제할 수 없습니다.");
-        }
-
-        // 이슈 제보자와 삭제 요청자가 다르면
-        if (!findIssueEntity.isEqualsSlackReporterId(requestUserId)) {
-            throw new IssueAccessDeniedException("이슈 제보자만 이슈를 삭제할 수 있습니다.");
-        }
-
-        // 이슈 삭제
-        findIssueEntity.delete(timeProvider.nowDateTime());
-        issueCourseEntityRepository.bulkDelete(issueId, timeProvider.nowDateTime());
-        issueUsergroupEntityRepository.bulkDelete(issueId, timeProvider.nowDateTime());
-        issueApplicationEntityRepository.bulkDelete(issueId, timeProvider.nowDateTime());
 
         return Issue.from(findIssueEntity);
     }

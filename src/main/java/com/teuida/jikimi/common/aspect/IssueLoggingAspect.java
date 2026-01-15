@@ -33,7 +33,7 @@ public class IssueLoggingAspect {
             }
 
             // Issue.id()로부터 IssueEntity 프록시 참조 획득 (추가 SELECT 쿼리 없이)
-            Long issueId = issue.id();
+            Long issueId = issue.getId();
             IssueEntity issueEntity = entityManager.getReference(IssueEntity.class, issueId);
 
             // 메서드 파라미터에서 slackActorId 추출

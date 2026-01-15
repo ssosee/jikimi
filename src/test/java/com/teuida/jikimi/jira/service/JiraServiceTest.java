@@ -14,10 +14,12 @@ import com.teuida.jikimi.common.enums.Environment;
 import com.teuida.jikimi.common.enums.IssueStatus;
 import com.teuida.jikimi.domain.exception.NotFoundException;
 import com.teuida.jikimi.domain.issue.model.Issue;
+import com.teuida.jikimi.domain.issue.service.UserMappingService;
 import com.teuida.jikimi.jira.client.JiraApiClient;
 import com.teuida.jikimi.jira.client.dto.request.CreateJiraIssueRequest;
 import com.teuida.jikimi.jira.client.dto.response.JiraIssueResponse;
 import com.teuida.jikimi.jira.client.dto.response.JiraUserResponse;
+import com.teuida.jikimi.slack.service.SlackApiService;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
@@ -32,8 +34,11 @@ import org.springframework.test.util.ReflectionTestUtils;
 class JiraServiceTest {
 
     @Mock
+    UserMappingService userMappingService;
+    @Mock
     private JiraApiClient jiraApiClient;
-
+    @Mock
+    private SlackApiService slackApiService;
     @InjectMocks
     private JiraService jiraService;
 
@@ -57,9 +62,11 @@ class JiraServiceTest {
                 .willReturn(List.of(jiraUserResponse));
         given(jiraApiClient.createIssue(any(CreateJiraIssueRequest.class)))
                 .willReturn(expectedResponse);
+        given(slackApiService.fetchUser(slackUser.getId()))
+                .willReturn(slackUser);
 
         // when
-        JiraIssueResponse result = jiraService.createIssue(issue, List.of(slackUser));
+        JiraIssueResponse result = jiraService.createIssue(issue);
 
         // then
         assertThat(result).isEqualTo(expectedResponse);
@@ -75,10 +82,12 @@ class JiraServiceTest {
         Issue issue = createIssue(slackAssigneeId);
         User otherSlackUser = createSlackUser("U99999", "other@example.com");
 
+        given(slackApiService.fetchUser(otherSlackUser.getId()))
+                .willReturn(otherSlackUser);
+
         // when & then
-        assertThatThrownBy(() -> jiraService.createIssue(issue, List.of(otherSlackUser)))
-                .isInstanceOf(NotFoundException.class)
-                .hasMessage("이슈 담당자로 지정된 슬랙 사용자를 찾을 수 없습니다.");
+        assertThatThrownBy(() -> jiraService.createIssue(issue))
+                .isInstanceOf(NotFoundException.class);
     }
 
     @Test
@@ -95,32 +104,37 @@ class JiraServiceTest {
 
         given(jiraApiClient.searchUsersWithQuery(email, 0, 1))
                 .willReturn(List.of());
+        given(slackApiService.fetchUser(slackUser.getId()))
+                .willReturn(slackUser);
 
         // when & then
-        assertThatThrownBy(() -> jiraService.createIssue(issue, List.of(slackUser)))
-                .isInstanceOf(NotFoundException.class)
-                .hasMessage("슬랙 이메일로 가입된 Jira Cloud 사용자를 찾을 수 없습니다.");
+        assertThatThrownBy(() -> jiraService.createIssue(issue))
+                .isInstanceOf(NotFoundException.class);
     }
 
     private Issue createIssue(String slackAssigneeId) {
-        return new Issue(
-                1L,
-                "1234567890.123456",
-                "C12345",
-                "U11111",
-                slackAssigneeId,
-                Set.of("1"),
-                Environment.PROD,
-                IssueStatus.OPEN,
-                Set.of(ApplicationType.IOS),
-                Set.of(CourseType.ALL),
-                "이슈 제목",
-                "이슈 설명",
-                "user@example.com",
-                null,
-                null,
-                null
-        );
+        return Issue.builder()
+                .id(1L)
+                .status(IssueStatus.OPEN)
+                .environment(Environment.PROD)
+                .title("이슈 제목")
+                .description("이슈 설명")
+                .userEmail("user@example.com")
+                .applicationTypes(Set.of(ApplicationType.IOS))
+                .courseTypes(Set.of(CourseType.ALL))
+                .slackContext(Issue.SlackContext.builder()
+                        .channelId("C12345")
+                        .messageTs("1234567890.123456")
+                        .reporterId("U11111")
+                        .assigneeId(slackAssigneeId)
+                        .assignedUsergroupIds(Set.of("1"))
+                        .build())
+                .jiraContext(Issue.JiraContext.builder()
+                        .issueKey(null)
+                        .issueUrl(null)
+                        .assigneeId(null)
+                        .build())
+                .build();
     }
 
     private User createSlackUser(String userId, String email) {

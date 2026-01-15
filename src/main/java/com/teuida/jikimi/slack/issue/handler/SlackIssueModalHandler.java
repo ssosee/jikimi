@@ -1,6 +1,5 @@
 package com.teuida.jikimi.slack.issue.handler;
 
-import static com.teuida.jikimi.slack.issue.IssueModalKeys.ISSUE_DELETE_CONFIRM_MODAL;
 import static com.teuida.jikimi.slack.issue.IssueModalKeys.ISSUE_MODAL;
 
 import com.slack.api.bolt.App;
@@ -23,14 +22,9 @@ public class SlackIssueModalHandler implements SlackHandlerRegistrar {
     @Override
     public void register(App app) {
         app.viewSubmission(ISSUE_MODAL, this::handleCreate);
-        app.viewSubmission(ISSUE_DELETE_CONFIRM_MODAL, this::handleDelete);
     }
 
     public Response handleCreate(ViewSubmissionRequest req, ViewSubmissionContext ctx) throws SlackApiException, IOException {
         return issueModalHandlerService.handleCreateIssue(req, ctx);
-    }
-
-    public Response handleDelete(ViewSubmissionRequest req, ViewSubmissionContext ctx) throws SlackApiException, IOException {
-        return issueModalHandlerService.handleDeleteIssue(req, ctx);
     }
 }

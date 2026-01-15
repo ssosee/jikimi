@@ -42,27 +42,29 @@ public class IssueActionHandlerService {
 
         // 이슈 할당
         Issue issue = issueService.assign(assignIssueRequest);
+        String channelId = issue.getSlackContext().getChannelId();
+        String messageTs = issue.getSlackContext().getMessageTs();
 
         // 슬랙 메시지 원본 수정
         client.chatUpdate(builder -> builder
-                .channel(issue.slackChannelId())
-                .ts(issue.slackMessageTs())
+                .channel(channelId)
+                .ts(messageTs)
                 .blocks(IssueBlockBuilder.buildIssueBlocks(issue))
         );
 
         // 해당 스레드에 이슈 할당 메시지 추가
         client.chatPostMessage(builder -> builder
-                .channel(issue.slackChannelId())
+                .channel(channelId)
                 .token(ctx.getBotToken())
-                .threadTs(issue.slackMessageTs())
+                .threadTs(messageTs)
                 .text(String.format("🙌 <@%s>님이 본인에게 이슈를 *할당* 했습니다.", requestUserId))
         );
 
         // 해당 스레드에 이모지 추가
         client.reactionsAdd(builder -> builder
                 .token(ctx.getBotToken())
-                .channel(issue.slackChannelId())
-                .timestamp(issue.slackMessageTs())
+                .channel(channelId)
+                .timestamp(messageTs)
                 .name("blue_loading")
         );
 
@@ -83,28 +85,30 @@ public class IssueActionHandlerService {
                 Long.parseLong(blockId), selectedUserId, requestValidator);
 
         // 이슈 할당
-        Issue issue = issueService.assign(assignIssueRequest);
+        Issue assignedIssue = issueService.assign(assignIssueRequest);
+        String channelId = assignedIssue.getSlackContext().getChannelId();
+        String messageTs = assignedIssue.getSlackContext().getMessageTs();
 
         // 슬랙 메시지 원본 수정
         client.chatUpdate(builder -> builder
-                .channel(issue.slackChannelId())
-                .ts(issue.slackMessageTs())
-                .blocks(IssueBlockBuilder.buildIssueBlocks(issue))
+                .channel(channelId)
+                .ts(messageTs)
+                .blocks(IssueBlockBuilder.buildIssueBlocks(assignedIssue))
         );
 
         // 해당 스레드에 이슈 할당 메시지 추가
         client.chatPostMessage(builder -> builder
-                .channel(issue.slackChannelId())
+                .channel(channelId)
                 .token(ctx.getBotToken())
-                .threadTs(issue.slackMessageTs())
+                .threadTs(messageTs)
                 .text(String.format("🕊️ <@%s>님이 <@%s>에게 이슈를 *할당* 했습니다.", requestUserId, selectedUserId))
         );
 
         // 해당 스레드에 이모지 추가
         client.reactionsAdd(builder -> builder
                 .token(ctx.getBotToken())
-                .channel(issue.slackChannelId())
-                .timestamp(issue.slackMessageTs())
+                .channel(channelId)
+                .timestamp(messageTs)
                 .name("blue_loading")
         );
 
@@ -122,35 +126,37 @@ public class IssueActionHandlerService {
 
         // 이슈 해결
         Issue solvedIssue = issueService.solve(solveIssueRequest);
+        String channelId = solvedIssue.getSlackContext().getChannelId();
+        String messageTs = solvedIssue.getSlackContext().getMessageTs();
 
         // 해당 스레드에 이슈 해결 메시지 추가
         client.chatPostMessage(builder -> builder
-                .channel(solvedIssue.slackChannelId())
+                .channel(channelId)
                 .token(ctx.getBotToken())
-                .threadTs(solvedIssue.slackMessageTs())
+                .threadTs(messageTs)
                 .text(String.format("🎉 <@%s>님이 이슈를 *해결* 했습니다.", requestUserId))
         );
 
         // 슬랙 메시지 원본 수정
         client.chatUpdate(builder -> builder
-                .channel(solvedIssue.slackChannelId())
-                .ts(solvedIssue.slackMessageTs())
+                .channel(channelId)
+                .ts(messageTs)
                 .blocks(IssueBlockBuilder.buildIssueBlocks(solvedIssue))
         );
 
         // 해당 스레드에 이모지 제거
         client.reactionsRemove(builder -> builder
                 .token(ctx.getBotToken())
-                .channel(solvedIssue.slackChannelId())
-                .timestamp(solvedIssue.slackMessageTs())
+                .channel(channelId)
+                .timestamp(messageTs)
                 .name("blue_loading")
         );
 
         // 해당 스레드에 이모지 추가
         client.reactionsAdd(builder -> builder
                 .token(ctx.getBotToken())
-                .channel(solvedIssue.slackChannelId())
-                .timestamp(solvedIssue.slackMessageTs())
+                .channel(channelId)
+                .timestamp(messageTs)
                 .name("done")
         );
 
