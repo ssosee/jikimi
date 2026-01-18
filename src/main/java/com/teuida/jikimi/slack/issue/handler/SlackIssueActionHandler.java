@@ -1,6 +1,7 @@
 package com.teuida.jikimi.slack.issue.handler;
 
 import static com.teuida.jikimi.slack.issue.IssueModalKeys.ACTION_ASSIGN_TO_ME;
+import static com.teuida.jikimi.slack.issue.IssueModalKeys.ACTION_CREATE_TICKET;
 import static com.teuida.jikimi.slack.issue.IssueModalKeys.ACTION_SELECT_ASSIGNEE;
 import static com.teuida.jikimi.slack.issue.IssueModalKeys.ACTION_SOLVE;
 
@@ -26,17 +27,26 @@ public class SlackIssueActionHandler implements SlackHandlerRegistrar {
         app.blockAction(ACTION_ASSIGN_TO_ME, this::handleAssignToMe);
         app.blockAction(ACTION_SELECT_ASSIGNEE, this::handleSelectAssignee);
         app.blockAction(ACTION_SOLVE, this::handleSolve);
+        app.blockAction(ACTION_CREATE_TICKET, this::handleCreateJiraIssueTicket);
     }
 
+    // 나에게 할당
     public Response handleAssignToMe(BlockActionRequest req, ActionContext ctx) throws SlackApiException, IOException {
         return issueActionHandlerService.handleAssignToMe(req, ctx);
     }
 
+    // 할당할 팀원...
     public Response handleSelectAssignee(BlockActionRequest req, ActionContext ctx) throws SlackApiException, IOException {
         return issueActionHandlerService.handleSelectAssignee(req, ctx);
     }
 
+    // 해결 완료
     public Response handleSolve(BlockActionRequest req, ActionContext ctx) throws SlackApiException, IOException {
         return issueActionHandlerService.handleSolveIssue(req, ctx);
+    }
+
+    // 티켓 생성
+    public Response handleCreateJiraIssueTicket(BlockActionRequest req, ActionContext ctx) throws SlackApiException, IOException {
+        return issueActionHandlerService.handleCreateJiraIssue(req, ctx);
     }
 }

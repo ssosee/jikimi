@@ -3,6 +3,7 @@ package com.teuida.jikimi.domain.issue.entity;
 import com.teuida.jikimi.common.enums.Environment;
 import com.teuida.jikimi.common.enums.IssueStatus;
 import com.teuida.jikimi.domain.issue.service.dto.CreateIssueRequest;
+import com.teuida.jikimi.jira.service.dto.JiraIssue;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -63,7 +64,7 @@ public class IssueEntity extends BaseTimeEntity {
     private String jiraIssueKey;
 
     @Column(name = "jira_issue_url")
-    private String jiraIssueUrl;
+    private String jiraIssueBrowserUrl;
 
     @Column(name = "jira_assignee_id", length = 50)
     private String jiraAssigneeId;
@@ -71,7 +72,7 @@ public class IssueEntity extends BaseTimeEntity {
     @Builder
     private IssueEntity(Environment environment, IssueStatus status, String title, String description, String userEmail,
                         String slackReporterId, String slackAssigneeId, String slackChannelId, String slackMessageTs,
-                        String jiraIssueKey, String jiraIssueUrl, String jiraAssigneeId) {
+                        String jiraIssueKey, String jiraIssueBrowserUrl, String jiraAssigneeId) {
         this.environment = environment;
         this.status = status;
         this.title = title;
@@ -82,7 +83,7 @@ public class IssueEntity extends BaseTimeEntity {
         this.slackChannelId = slackChannelId;
         this.slackMessageTs = slackMessageTs;
         this.jiraIssueKey = jiraIssueKey;
-        this.jiraIssueUrl = jiraIssueUrl;
+        this.jiraIssueBrowserUrl = jiraIssueBrowserUrl;
         this.jiraAssigneeId = jiraAssigneeId;
     }
 
@@ -130,6 +131,12 @@ public class IssueEntity extends BaseTimeEntity {
     }
 
     public String toJiraLink() {
-        return String.format("<%s|%s>", this.jiraIssueUrl, this.jiraIssueKey);
+        return String.format("<%s|%s>", this.jiraIssueBrowserUrl, this.jiraIssueKey);
+    }
+
+    public void changeJiraIssue(JiraIssue jiraIssue) {
+        this.jiraIssueKey = jiraIssue.key();
+        this.jiraIssueBrowserUrl = jiraIssue.getBrowserUrl();
+        this.jiraAssigneeId = jiraIssue.assigneeId();
     }
 }

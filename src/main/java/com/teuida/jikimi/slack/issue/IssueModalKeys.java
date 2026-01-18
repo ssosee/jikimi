@@ -6,7 +6,7 @@ abstract public class IssueModalKeys {
 
     // Callback IDs
     public static final String ISSUE_MODAL = "issue_modal";
-    public static final String ISSUE_DELETE_CONFIRM_MODAL = "issue_delete_confirm_modal";
+    public static final String JIRA_ISSUE_MODAL = "jira_issue_modal";
 
     // Block IDs
     public static final String BLOCK_ENVIRONMENT = "block_environment";
@@ -16,7 +16,9 @@ abstract public class IssueModalKeys {
     public static final String BLOCK_DESCRIPTION = "block_description";
     public static final String BLOCK_USERGROUP = "block_usergroup";
     public static final String BLOCK_USER_EMAIL = "block_user_email";
-    // Action IDs
+    public static final String BLOCK_JIRA_PRIORITY = "block_jira_priority";
+    public static final String BLOCK_JIRA_TYPE = "block_jira_type";
+    // Action Modal IDs
     public static final String ACTION_ENVIRONMENT = "action_environment";
     public static final String ACTION_COURSE_TYPE = "action_course_type";
     public static final String ACTION_APPLICATION_TYPE = "action_application_type";
@@ -24,7 +26,9 @@ abstract public class IssueModalKeys {
     public static final String ACTION_DESCRIPTION = "action_description";
     public static final String ACTION_USERGROUP = "action_usergroup";
     public static final String ACTION_USER_EMAIL = "action_user_email";
-    public static final String ACTION_MORE_OPTIONS = "action_more_options";
+    public static final String ACTION_JIRA_PRIORITY = "action_jira_priority";
+    public static final String ACTION_JIRA_TYPE = "action_jira_type";
+
     // ===== Issue Block Action IDs =====
     public static final String ACTION_CREATE_TICKET = "action_create_ticket";
     public static final String ACTION_SOLVE = "action_solve";

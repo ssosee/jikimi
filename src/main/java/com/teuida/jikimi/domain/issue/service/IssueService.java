@@ -1,5 +1,6 @@
 package com.teuida.jikimi.domain.issue.service;
 
+import com.teuida.jikimi.common.TimeProvider;
 import com.teuida.jikimi.common.annotation.IssueLogging;
 import com.teuida.jikimi.common.enums.ActionType;
 import com.teuida.jikimi.common.enums.ApplicationType;
@@ -18,7 +19,10 @@ import com.teuida.jikimi.domain.issue.repository.IssueQueryRepository;
 import com.teuida.jikimi.domain.issue.repository.IssueUsergroupEntityRepository;
 import com.teuida.jikimi.domain.issue.service.dto.AssignIssueRequest;
 import com.teuida.jikimi.domain.issue.service.dto.CreateIssueRequest;
+import com.teuida.jikimi.domain.issue.service.dto.CreateJiraIssueRequest;
 import com.teuida.jikimi.domain.issue.service.dto.SolveIssueRequest;
+import com.teuida.jikimi.jira.service.dto.JiraIssue;
+import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class IssueService {
-
+    private final TimeProvider timeProvider;
     private final IssueQueryRepository issueQueryRepository;
     private final IssueEntityRepository issueEntityRepository;
     private final IssueApplicationEntityRepository issueApplicationEntityRepository;
@@ -39,6 +43,7 @@ public class IssueService {
     @Transactional
     @IssueLogging(actionType = ActionType.CREATED)
     public Issue createIssue(CreateIssueRequest request) {
+        LocalDateTime now = timeProvider.nowDateTime();
 
         // 이슈 저장
         IssueEntity issueEntity = IssueEntity.create(request);
@@ -47,20 +52,20 @@ public class IssueService {
         // 이슈 애플리케이션 타입 저장
         Set<ApplicationType> applicationTypes = request.getApplicationTypes();
         Set<IssueApplicationEntity> applicationEntities = applicationTypes.stream()
-                .map(type -> IssueApplicationEntity.create(issueEntity, type))
+                .map(type -> IssueApplicationEntity.create(issueEntity, type, now))
                 .collect(Collectors.toSet());
         issueApplicationEntityRepository.saveAll(applicationEntities);
 
         // 이슈 코스 타입 저장
         Set<CourseType> courseTypes = request.getCourseTypes();
         Set<IssueCourseEntity> courseEntities = courseTypes.stream()
-                .map(type -> IssueCourseEntity.create(issueEntity, type))
+                .map(type -> IssueCourseEntity.create(issueEntity, type, now))
                 .collect(Collectors.toSet());
         issueCourseEntityRepository.saveAll(courseEntities);
 
         // 이슈 팀 저장
         Set<IssueUsergroupEntity> usergroupEntities = request.getUsergroupIds().stream()
-                .map(usergroupId -> IssueUsergroupEntity.create(issueEntity, usergroupId))
+                .map(usergroupId -> IssueUsergroupEntity.create(issueEntity, usergroupId, now))
                 .collect(Collectors.toSet());
         issueUsergroupEntityRepository.saveAll(usergroupEntities);
 
@@ -108,6 +113,24 @@ public class IssueService {
         IssueEntity findIssueEntity = issueEntityRepository.findById(issueId)
                 .orElseThrow(() -> new NotFoundException(IssueEntity.class));
 
+        // 이슈 애플리케이션 조회
+        Set<IssueApplicationEntity> findIssueApplicationEntities = issueApplicationEntityRepository.findByIssueEntity(
+                findIssueEntity);
+
+        // 이슈 코스 조회
+        Set<IssueCourseEntity> findIssueCourseEntities = issueCourseEntityRepository.findByIssueEntity(findIssueEntity);
+
+        // 이슈 유저 그룹 조회
+        Set<IssueUsergroupEntity> findIssueUsergroupEntites = issueUsergroupEntityRepository.findByIssueEntity(findIssueEntity);
+
+        return Issue.of(findIssueEntity, findIssueApplicationEntities, findIssueCourseEntities, findIssueUsergroupEntites);
+    }
+
+    public Issue getOnlyIssue(Long issueId) {
+        // 이슈 조회
+        IssueEntity findIssueEntity = issueEntityRepository.findById(issueId)
+                .orElseThrow(() -> new NotFoundException(IssueEntity.class));
+
         return Issue.from(findIssueEntity);
     }
 
@@ -140,5 +163,18 @@ public class IssueService {
         Set<IssueUsergroupEntity> findIssueUsergroupEntites = issueUsergroupEntityRepository.findByIssueEntity(findIssueEntity);
 
         return Issue.of(findIssueEntity, findIssueApplicationEntities, findIssueCourseEntities, findIssueUsergroupEntites);
+    }
+
+    @Transactional
+    @IssueLogging(actionType = ActionType.CREATED_JIRA)
+    public Issue applyJiraIssue(CreateJiraIssueRequest request, JiraIssue jiraIssue) {
+        // 이슈 조회
+        IssueEntity findIssueEntity = issueEntityRepository.findById(request.getIssueId())
+                .orElseThrow(() -> new NotFoundException(IssueEntity.class));
+
+        // 이슈 Jira 이슈 정보 변경
+        findIssueEntity.changeJiraIssue(jiraIssue);
+
+        return Issue.from(findIssueEntity);
     }
 }

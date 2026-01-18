@@ -40,7 +40,7 @@ public class UserMappingService {
         }
 
         // Jira API 호출하여 슬랙 이메일로 사용자 조회
-        List<JiraUserResponse> jiraUsersResponse = jiraApiClient.searchUsersWithQuery(slackEmail, 0, 1);
+        List<JiraUserResponse> jiraUsersResponse = jiraApiClient.searchUsers(slackEmail, null, 0, 1);
 
         // 존재하지 않는 경우 예외 처리
         if (jiraUsersResponse.isEmpty()) {

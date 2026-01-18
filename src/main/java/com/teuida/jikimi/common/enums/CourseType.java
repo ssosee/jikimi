@@ -6,18 +6,19 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum CourseType {
-    ALL("🌎 All"),
-    KOEN("🇰🇷 KOEN"),
-    JANE("🇯🇵 JAEN"),
-    ESEN("🇪🇸 ESEN"),
-    KOJA("🇰🇷 KOJA"),
-    FREN("🇫🇷 FREN"),
-    ZHEN("🇨🇳 ZHEN");
+    ALL("🌎 All", "All"),
+    KOEN("🇰🇷 KOEN", "KOEN"),
+    JANE("🇯🇵 JAEN", "JAEN"),
+    ESEN("🇪🇸 ESEN", "ESEN"),
+    KOJA("🇰🇷 KOJA", "KOJA"),
+    FREN("🇫🇷 FREN", "FREN"),
+    ZHEN("🇨🇳 ZHEN", "ZHEN");
 
-    private final String displayName;
+    private final String displayNameForSlack;
+    private final String displayNameForJira;
 
     @Override
     public String toString() {
-        return displayName;
+        return displayNameForSlack;
     }
 }

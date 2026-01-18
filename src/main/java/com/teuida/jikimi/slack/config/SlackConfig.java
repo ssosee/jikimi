@@ -1,6 +1,5 @@
 package com.teuida.jikimi.slack.config;
 
-import com.slack.api.Slack;
 import com.slack.api.bolt.App;
 import com.slack.api.bolt.AppConfig;
 import com.teuida.jikimi.slack.SlackHandlerRegistrar;
@@ -35,10 +34,5 @@ public class SlackConfig {
         App app = new App(appConfig);
         handlerRegistrars.forEach(registrar -> registrar.register(app));
         return app;
-    }
-
-    @Bean
-    public Slack slack() {
-        return Slack.getInstance();
     }
 }

@@ -8,6 +8,4 @@ import org.springframework.stereotype.Repository;
 @RequiredArgsConstructor
 public class IssueQueryRepository {
     private final JPAQueryFactory query;
-
-    
 }

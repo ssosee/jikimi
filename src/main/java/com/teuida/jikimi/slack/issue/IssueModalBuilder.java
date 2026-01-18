@@ -1,7 +1,7 @@
 package com.teuida.jikimi.slack.issue;
 
 import static com.slack.api.model.block.Blocks.asBlocks;
-import static com.slack.api.model.block.Blocks.header;
+import static com.slack.api.model.block.Blocks.divider;
 import static com.slack.api.model.block.Blocks.input;
 import static com.slack.api.model.block.Blocks.section;
 import static com.slack.api.model.block.composition.BlockCompositions.asOptions;
@@ -21,6 +21,8 @@ import static com.teuida.jikimi.slack.issue.IssueModalKeys.ACTION_APPLICATION_TY
 import static com.teuida.jikimi.slack.issue.IssueModalKeys.ACTION_COURSE_TYPE;
 import static com.teuida.jikimi.slack.issue.IssueModalKeys.ACTION_DESCRIPTION;
 import static com.teuida.jikimi.slack.issue.IssueModalKeys.ACTION_ENVIRONMENT;
+import static com.teuida.jikimi.slack.issue.IssueModalKeys.ACTION_JIRA_PRIORITY;
+import static com.teuida.jikimi.slack.issue.IssueModalKeys.ACTION_JIRA_TYPE;
 import static com.teuida.jikimi.slack.issue.IssueModalKeys.ACTION_TITLE;
 import static com.teuida.jikimi.slack.issue.IssueModalKeys.ACTION_USERGROUP;
 import static com.teuida.jikimi.slack.issue.IssueModalKeys.ACTION_USER_EMAIL;
@@ -28,6 +30,8 @@ import static com.teuida.jikimi.slack.issue.IssueModalKeys.BLOCK_APPLICATION_TYP
 import static com.teuida.jikimi.slack.issue.IssueModalKeys.BLOCK_COURSE_TYPE;
 import static com.teuida.jikimi.slack.issue.IssueModalKeys.BLOCK_DESCRIPTION;
 import static com.teuida.jikimi.slack.issue.IssueModalKeys.BLOCK_ENVIRONMENT;
+import static com.teuida.jikimi.slack.issue.IssueModalKeys.BLOCK_JIRA_PRIORITY;
+import static com.teuida.jikimi.slack.issue.IssueModalKeys.BLOCK_JIRA_TYPE;
 import static com.teuida.jikimi.slack.issue.IssueModalKeys.BLOCK_TITLE;
 import static com.teuida.jikimi.slack.issue.IssueModalKeys.BLOCK_USERGROUP;
 import static com.teuida.jikimi.slack.issue.IssueModalKeys.BLOCK_USER_EMAIL;
@@ -40,6 +44,10 @@ import com.teuida.jikimi.common.enums.ApplicationType;
 import com.teuida.jikimi.common.enums.CourseType;
 import com.teuida.jikimi.common.enums.Environment;
 import com.teuida.jikimi.domain.issue.model.Issue;
+import com.teuida.jikimi.jira.client.dto.response.JiraProjectResponse;
+import com.teuida.jikimi.jira.client.dto.response.JiraProjectResponse.IssueType;
+import com.teuida.jikimi.jira.client.dto.response.JiraSearchPriorityResponse;
+import com.teuida.jikimi.jira.client.dto.response.JiraSearchPriorityResponse.Value;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -56,7 +64,7 @@ abstract public class IssueModalBuilder {
                 .collect(Collectors.toList());
     }
 
-    public static View buildIssueModal(String channelId, String botId, List<Usergroup> usergroups, String callbackId) {
+    public static View buildIssueModal(String channelId, List<Usergroup> usergroups, String callbackId) {
         // 사용자 그룹, 사용자 옵션 생성
         List<OptionObject> userGroupOptions = usergroups.stream()
                 .map(ug -> option(plainText(ug.getName()), ug.getId()))
@@ -75,7 +83,8 @@ abstract public class IssueModalBuilder {
                 .blocks(asBlocks(
                         // 1. 실행 환경
                         input(i -> i.blockId(BLOCK_ENVIRONMENT).label(plainText("실행 환경")).element(
-                                staticSelect(m -> m.actionId(ACTION_ENVIRONMENT)
+                                staticSelect(m -> m
+                                        .actionId(ACTION_ENVIRONMENT)
                                         .placeholder(plainText(Environment.PROD.toString()))
                                         .initialOption(
                                                 option(plainText(Environment.PROD.toString()), Environment.PROD.name()))
@@ -137,23 +146,49 @@ abstract public class IssueModalBuilder {
                 )));
     }
 
-    public static View buildDeleteIssueConfirmModal(String callbackId, Issue issue) {
+    public static View buildJiraIssueModal(Issue issue, String callbackId, JiraProjectResponse jiraProject,
+                                           JiraSearchPriorityResponse jiraSearchPriority) {
 
-        String descriptionPreview = issue.getDescription().substring(0, Math.min(20, issue.getDescription().length()));
+        List<IssueType> issueTypes = jiraProject.issueTypes();
+        List<Value> values = jiraSearchPriority.values();
 
-        return view(view -> view.type(MODAL)
+        return view(builder -> builder
+                .type(MODAL)
                 .callbackId(callbackId)
-                .privateMetadata(String.valueOf(issue.getId()))
-                .title(viewTitle(t -> t.type(PLAIN_TEXT).text("이슈 삭제")))
-                .close(viewClose(c -> c.type(PLAIN_TEXT).text("취소")))
-                .submit(viewSubmit(s -> s.type(PLAIN_TEXT).text("삭제")))
+                .privateMetadata(issue.getId().toString())
+                .title(viewTitle(t -> t.type(PLAIN_TEXT).text("Jira 티켓 생성")))
+                .submit(viewSubmit(s -> s.type(PLAIN_TEXT).text("제출")))
+                .close(viewClose(c -> c.type(PLAIN_TEXT).text("닫기")))
                 .blocks(asBlocks(
-                        header(h -> h.text(plainText(":warning: 이슈를 삭제하시겠습니까?"))),
-                        section(s -> s.text(markdownText(
-                                "*이슈 제목*: " + issue.getTitle() + "\n" +
-                                        "*이슈 내용*: " + descriptionPreview + "...\n\n" +
-                                        "_삭제된 이슈는 복구할 수 없습니다._"
-                        )))
+                        // 이슈 제목 표시 (읽기 전용)
+                        section(s -> s.text(markdownText("*이슈 제목*\n" + issue.getTitle()))),
+
+                        divider(), // 구분선 추가 (선택사항)
+
+                        // 우선순위 설정
+                        input(i -> i.blockId(BLOCK_JIRA_PRIORITY)
+                                .label(plainText("우선순위")).element(staticSelect(s -> s
+                                        .actionId(ACTION_JIRA_PRIORITY)
+                                        .placeholder(plainText("우선순위 선택"))
+                                        .initialOption(
+                                                option(plainText(values.getLast().name()), values.getLast().id()))
+                                        .options(values.stream()
+                                                .map(value -> option(plainText(value.name()), value.id()))
+                                                .toList())
+                                ))),
+
+                        // 이슈타입 설정
+                        input(i -> i.blockId(BLOCK_JIRA_TYPE)
+                                .label(plainText("이슈타입")).element(staticSelect(s -> s
+                                        .actionId(ACTION_JIRA_TYPE)
+                                        .placeholder(plainText("이슈타입 선택"))
+                                        .initialOption(
+                                                option(plainText(issueTypes.getLast().name()), issueTypes.getLast().id()))
+                                        .options(issueTypes.stream()
+                                                .filter(issueType -> !issueType.subtask())
+                                                .map(issueType -> option(plainText(issueType.name()), issueType.id()))
+                                                .toList())
+                                )))
                 ))
         );
     }

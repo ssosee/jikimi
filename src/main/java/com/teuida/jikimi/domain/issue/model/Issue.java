@@ -72,7 +72,7 @@ public class Issue {
                         .build())
                 .jiraContext(JiraContext.builder()
                         .issueKey(issueEntity.getJiraIssueKey())
-                        .issueUrl(issueEntity.getJiraIssueUrl())
+                        .issueBrowserUrl(issueEntity.getJiraIssueBrowserUrl())
                         .assigneeId(issueEntity.getJiraAssigneeId())
                         .build())
                 .build();
@@ -97,7 +97,7 @@ public class Issue {
                         .build())
                 .jiraContext(JiraContext.builder()
                         .issueKey(issueEntity.getJiraIssueKey())
-                        .issueUrl(issueEntity.getJiraIssueUrl())
+                        .issueBrowserUrl(issueEntity.getJiraIssueBrowserUrl())
                         .assigneeId(issueEntity.getJiraAssigneeId())
                         .build())
                 .build();
@@ -110,42 +110,17 @@ public class Issue {
         return slackContext.getThreadUrl(workspaceUrl);
     }
 
-    /**
-     * Slack 담당자 확인 (편의 메서드)
-     */
-    public boolean isEqualsSlackAssigneeId(String slackAssigneeId) {
-        return slackContext.isAssignedTo(slackAssigneeId);
-    }
-
     // === 비즈니스 로직 메서드 ===
-
-    /**
-     * Jira 티켓 생성 여부 확인 (편의 메서드)
-     */
-    public boolean isJiraCreated() {
-        return jiraContext != null && jiraContext.isCreated();
-    }
 
     /**
      * 이슈가 완전히 할당되었는지 확인 (Slack + Jira 모두)
      */
     public boolean isFullyAssigned() {
-        return slackContext.hasAssignment() &&
-                jiraContext != null && jiraContext.hasAssignee();
+        return slackContext != null && slackContext.isAssignedTo() && jiraContext != null && jiraContext.hasAssignee();
     }
 
-    /**
-     * 이슈가 특정 상태인지 확인
-     */
-    public boolean isStatus(IssueStatus targetStatus) {
-        return this.status == targetStatus;
-    }
-
-    /**
-     * 이슈가 종료 상태인지 확인
-     */
-    public boolean isClosed() {
-        return this.status == IssueStatus.CLOSED;
+    public boolean isOnlySlackAssigned() {
+        return jiraContext != null && !jiraContext.hasAssignee() && slackContext != null && slackContext.isAssignedTo();
     }
 
     /**
@@ -178,10 +153,10 @@ public class Issue {
         }
 
         /**
-         * 특정 사용자에게 할당되었는지 확인
+         * 사용자에게 할당되었는지 확인
          */
-        public boolean isAssignedTo(String slackUserId) {
-            return this.assigneeId != null && this.assigneeId.equals(slackUserId);
+        public boolean isAssignedTo() {
+            return assigneeId != null && !assigneeId.isBlank();
         }
 
         /**
@@ -190,14 +165,6 @@ public class Issue {
         public boolean isAssignedToUsergroup(String usergroupId) {
             return this.assignedUsergroupIds != null &&
                     this.assignedUsergroupIds.contains(usergroupId);
-        }
-
-        /**
-         * 할당된 대상이 있는지 확인 (개인 또는 유저그룹)
-         */
-        public boolean hasAssignment() {
-            return (assigneeId != null && !assigneeId.isBlank()) ||
-                    (assignedUsergroupIds != null && !assignedUsergroupIds.isEmpty());
         }
 
         /**
@@ -215,8 +182,10 @@ public class Issue {
     @Builder
     public static class JiraContext {
         private final String issueKey;
-        private final String issueUrl;
+        private final String issueBrowserUrl;
         private final String assigneeId;
+        private final String issueType;
+        private final String priority;
 
         /**
          * Jira 티켓이 생성되었는지 확인
@@ -230,13 +199,6 @@ public class Issue {
          */
         public boolean hasAssignee() {
             return assigneeId != null && !assigneeId.isBlank();
-        }
-
-        /**
-         * 특정 사용자에게 할당되었는지 확인
-         */
-        public boolean isAssignedTo(String jiraUserId) {
-            return this.assigneeId != null && this.assigneeId.equals(jiraUserId);
         }
     }
 }

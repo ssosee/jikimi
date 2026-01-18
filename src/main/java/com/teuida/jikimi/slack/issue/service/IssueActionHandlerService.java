@@ -1,9 +1,7 @@
 package com.teuida.jikimi.slack.issue.service;
 
-import static com.teuida.jikimi.slack.issue.IssueModalKeys.ISSUE_DELETE_CONFIRM_MODAL;
-import static com.teuida.jikimi.slack.issue.IssueModalKeys.VALUE_DELETE_ISSUE;
+import static com.teuida.jikimi.slack.issue.IssueModalKeys.JIRA_ISSUE_MODAL;
 
-import com.slack.api.app_backend.interactive_components.payload.BlockActionPayload.Action.SelectedOption;
 import com.slack.api.bolt.context.builtin.ActionContext;
 import com.slack.api.bolt.request.builtin.BlockActionRequest;
 import com.slack.api.bolt.response.Response;
@@ -13,6 +11,9 @@ import com.teuida.jikimi.domain.issue.model.Issue;
 import com.teuida.jikimi.domain.issue.service.IssueService;
 import com.teuida.jikimi.domain.issue.service.dto.AssignIssueRequest;
 import com.teuida.jikimi.domain.issue.service.dto.SolveIssueRequest;
+import com.teuida.jikimi.jira.client.dto.response.JiraProjectResponse;
+import com.teuida.jikimi.jira.client.dto.response.JiraSearchPriorityResponse;
+import com.teuida.jikimi.jira.service.JiraMetadataService;
 import com.teuida.jikimi.slack.issue.IssueBlockBuilder;
 import com.teuida.jikimi.slack.issue.IssueModalBuilder;
 import com.teuida.jikimi.slack.util.RequestValidator;
@@ -29,6 +30,7 @@ public class IssueActionHandlerService {
 
     private final IssueService issueService;
     private final RequestValidator requestValidator;
+    private final JiraMetadataService jiraMetadataService;
 
     public Response handleAssignToMe(BlockActionRequest req, ActionContext ctx)
             throws SlackApiException, IOException {
@@ -163,21 +165,24 @@ public class IssueActionHandlerService {
         return ctx.ack();
     }
 
-    public Response handleMoreOptions(BlockActionRequest req, ActionContext ctx) throws SlackApiException, IOException {
-        SelectedOption selectedOption = req.getPayload().getActions().getFirst().getSelectedOption();
-        MethodsClient client = ctx.client();
+    public Response handleCreateJiraIssue(BlockActionRequest req, ActionContext ctx) throws SlackApiException, IOException {
         String blockId = req.getPayload().getActions().getFirst().getBlockId();
+        Long issueId = Long.parseLong(blockId);
 
-        // 이슈 조회
-        Issue findIssue = issueService.getIssue(Long.parseLong(blockId));
+        // 이슈만 조회
+        Issue findIssue = issueService.getOnlyIssue(issueId);
 
-        // 삭제 옵션 선택 시 삭제 확인 모달 오픈
-        if (selectedOption.getValue().equals(VALUE_DELETE_ISSUE)) {
-            client.viewsOpen(builder -> builder
-                    .triggerId(req.getPayload().getTriggerId())
-                    .view(IssueModalBuilder.buildDeleteIssueConfirmModal(ISSUE_DELETE_CONFIRM_MODAL, findIssue))
-            );
-        }
+        // Jira 프로젝트 조회
+        JiraProjectResponse jiraProject = jiraMetadataService.getProject();
+
+        // Jira 우선순위 조회
+        JiraSearchPriorityResponse jiraSearchPriority = jiraMetadataService.searchPriorities(jiraProject.id());
+
+        // 모달 생성
+        ctx.client().viewsOpen(builder -> builder
+                .triggerId(ctx.getTriggerId())
+                .view(IssueModalBuilder.buildJiraIssueModal(findIssue, JIRA_ISSUE_MODAL, jiraProject, jiraSearchPriority))
+        );
 
         return ctx.ack();
     }

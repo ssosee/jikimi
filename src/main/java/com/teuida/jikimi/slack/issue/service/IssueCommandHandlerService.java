@@ -23,7 +23,6 @@ public class IssueCommandHandlerService {
 
     public Response handleCommandIssue(SlashCommandRequest req, SlashCommandContext ctx) throws SlackApiException, IOException {
         MethodsClient client = ctx.client();
-        String botToken = ctx.getBotToken();
         String channelId = req.getPayload().getChannelId();
 
         // 슬랙 팀 정보 조회
@@ -32,7 +31,7 @@ public class IssueCommandHandlerService {
         // 모달 생성
         client.viewsOpen(builder -> builder
                 .triggerId(ctx.getTriggerId())
-                .view(IssueModalBuilder.buildIssueModal(channelId, ctx.getBotId(), findUsergroups, ISSUE_MODAL))
+                .view(IssueModalBuilder.buildIssueModal(channelId, findUsergroups, ISSUE_MODAL))
         );
 
         return ctx.ack();

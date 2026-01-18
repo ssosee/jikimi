@@ -29,7 +29,6 @@ import com.teuida.jikimi.domain.issue.model.Issue;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.springframework.util.StringUtils;
 
 public abstract class IssueBlockBuilder {
 
@@ -75,7 +74,7 @@ public abstract class IssueBlockBuilder {
 
     private static SectionBlock buildEnvironmentAndApplicationRow(Issue issue) {
         String applications = issue.getApplicationTypes().stream()
-                .map(ApplicationType::getDisplayName)
+                .map(ApplicationType::getDisplayNameForSlack)
                 .collect(Collectors.joining(", "));
 
         return section(s -> s.fields(List.of(
@@ -86,7 +85,7 @@ public abstract class IssueBlockBuilder {
 
     private static SectionBlock buildCourseAndReporterRow(Issue issue) {
         String courses = issue.getCourseTypes().stream()
-                .map(CourseType::getDisplayName)
+                .map(CourseType::getDisplayNameForSlack)
                 .collect(Collectors.joining(", "));
 
         return section(s -> s.fields(List.of(
@@ -136,14 +135,18 @@ public abstract class IssueBlockBuilder {
 
     // ========== 액션 버튼 ==========
     private static List<LayoutBlock> buildActionButtons(Issue issue) {
-        if (StringUtils.hasText(issue.getSlackContext().getAssigneeId())) {
-            return buildAssignedActions(issue);
-        } else {
-            return buildUnassignedActions(issue);
+        if (issue.isFullyAssigned()) {
+            return buildFullyAssignedActions(issue);
         }
+
+        if (issue.isOnlySlackAssigned()) {
+            return buildOnlySlackAssignedActions(issue);
+        }
+
+        return buildUnassignedActions(issue);
     }
 
-    private static List<LayoutBlock> buildAssignedActions(Issue issue) {
+    private static List<LayoutBlock> buildOnlySlackAssignedActions(Issue issue) {
         return List.of(
                 header(h -> h.text(plainText(pt -> pt
                         .text("👇 이슈에 대해 다음 작업을 선택하세요.")
@@ -152,6 +155,20 @@ public abstract class IssueBlockBuilder {
                         .blockId(String.valueOf(issue.getId()))
                         .elements(asElements(
                                 createTicketButton(),
+                                solveButton()
+                        ))
+                )
+        );
+    }
+
+    private static List<LayoutBlock> buildFullyAssignedActions(Issue issue) {
+        return List.of(
+                header(h -> h.text(plainText(pt -> pt
+                        .text("👇 이슈에 대해 다음 작업을 선택하세요.")
+                ))),
+                actions(a -> a
+                        .blockId(String.valueOf(issue.getId()))
+                        .elements(asElements(
                                 solveButton()
                         ))
                 )

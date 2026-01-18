@@ -13,6 +13,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -22,7 +23,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @Table(name = "issue_course")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class IssueCourseEntity extends BaseTimeEntity {
+public class IssueCourseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -36,16 +37,21 @@ public class IssueCourseEntity extends BaseTimeEntity {
     @Column(name = "type")
     private CourseType type;
 
+    @Column(name = "create_date_time", nullable = false)
+    private LocalDateTime createDateTime;
+
     @Builder
-    private IssueCourseEntity(CourseType type, IssueEntity issueEntity) {
+    private IssueCourseEntity(CourseType type, IssueEntity issueEntity, LocalDateTime createDateTime) {
         this.type = type;
         this.issueEntity = issueEntity;
+        this.createDateTime = createDateTime;
     }
 
-    public static IssueCourseEntity create(IssueEntity issueEntity, CourseType type) {
+    public static IssueCourseEntity create(IssueEntity issueEntity, CourseType type, LocalDateTime createDateTime) {
         return IssueCourseEntity.builder()
                 .issueEntity(issueEntity)
                 .type(type)
+                .createDateTime(createDateTime)
                 .build();
     }
 }

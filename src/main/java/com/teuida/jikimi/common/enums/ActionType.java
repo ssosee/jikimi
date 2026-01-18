@@ -9,7 +9,7 @@ public enum ActionType {
     CREATED("생성"),
     DELETED("삭제"),
     ASSIGNED("할당"),
-    JIRA_CREATED("JIRA 티켓 생성"),
+    CREATED_JIRA("JIRA 티켓 생성"),
     RESOLVE("해결");
 
     private final String displayName;

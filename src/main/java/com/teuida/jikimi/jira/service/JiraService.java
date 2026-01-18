@@ -1,17 +1,17 @@
 package com.teuida.jikimi.jira.service;
 
-import com.slack.api.model.User;
-import com.teuida.jikimi.domain.exception.NotFoundException;
 import com.teuida.jikimi.domain.issue.model.Issue;
 import com.teuida.jikimi.domain.issue.service.UserMappingService;
 import com.teuida.jikimi.jira.client.JiraApiClient;
 import com.teuida.jikimi.jira.client.dto.request.CreateJiraIssueRequest;
 import com.teuida.jikimi.jira.client.dto.response.JiraIssueResponse;
-import java.util.List;
+import com.teuida.jikimi.jira.service.dto.JiraIssue;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class JiraService {
@@ -20,7 +20,8 @@ public class JiraService {
     private final UserMappingService userMappingService;
 
     @Value("${jira.project-key}")
-    private String projectKey;
+    private String jiraProjectKey;
+
     @Value("${slack.workspace-url}")
     private String slackWorkspaceUrl;
 
@@ -30,7 +31,7 @@ public class JiraService {
      * @param issue
      * @return
      */
-    public JiraIssueResponse createIssue(Issue issue) {
+    public JiraIssue createIssue(Issue issue, String jiraIssueTypeId, String jiraPriorityId) {
         // 슬랙 사용자 조회
         String slackAssigneeId = issue.getSlackContext().getAssigneeId();
 
@@ -41,18 +42,17 @@ public class JiraService {
         CreateJiraIssueRequest createJiraIssueRequest = CreateJiraIssueRequest.from(
                 issue,
                 slackWorkspaceUrl,
-                projectKey,
-                jiraAccountId
+                jiraProjectKey,
+                jiraAccountId,
+                jiraIssueTypeId,
+                jiraPriorityId
         );
 
-        // 이슈 생성
-        return jiraApiClient.createIssue(createJiraIssueRequest);
-    }
+        log.debug("createJiraIssueRequest : {}", createJiraIssueRequest);
 
-    private User findSlackUser(List<User> slackUsers, String slackUserId) {
-        return slackUsers.stream()
-                .filter(user -> user.getId().equals(slackUserId))
-                .findFirst()
-                .orElseThrow(() -> new NotFoundException("Slack 사용자를 찾을 수 없습니다."));
+        // 이슈 생성
+        JiraIssueResponse jiraIssueResponse = jiraApiClient.createIssue(createJiraIssueRequest);
+
+        return JiraIssue.of(jiraIssueResponse, jiraAccountId);
     }
 }

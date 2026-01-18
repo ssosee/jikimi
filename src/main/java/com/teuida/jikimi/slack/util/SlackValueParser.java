@@ -15,14 +15,23 @@ public final class SlackValueParser {
     /**
      * plainTextInput 또는 emailTextInput에서 String 값 추출
      */
-    public static String extractString(Map<String, Map<String, Value>> values,
-                                       String blockId, String actionId) {
+    public static String extractStringValue(Map<String, Map<String, Value>> values,
+                                            String blockId, String actionId) {
         try {
             String value = values.get(blockId).get(actionId).getValue();
             if (value == null || value.isBlank()) {
                 throw new IllegalArgumentException(blockId + " 필드는 필수입니다");
             }
             return value;
+        } catch (NullPointerException e) {
+            throw new IllegalArgumentException(blockId + " 필드를 찾을 수 없습니다", e);
+        }
+    }
+
+    public static String extractStringSelectedOption(Map<String, Map<String, Value>> values,
+                                                     String blockId, String actionId) {
+        try {
+            return values.get(blockId).get(actionId).getSelectedOption().getValue();
         } catch (NullPointerException e) {
             throw new IllegalArgumentException(blockId + " 필드를 찾을 수 없습니다", e);
         }

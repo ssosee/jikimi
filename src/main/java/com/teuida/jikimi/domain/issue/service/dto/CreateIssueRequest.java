@@ -18,8 +18,8 @@ import static com.teuida.jikimi.slack.util.SlackValueParser.extractEnum;
 import static com.teuida.jikimi.slack.util.SlackValueParser.extractEnumSet;
 import static com.teuida.jikimi.slack.util.SlackValueParser.extractOptionalEnumSet;
 import static com.teuida.jikimi.slack.util.SlackValueParser.extractOptionalString;
-import static com.teuida.jikimi.slack.util.SlackValueParser.extractString;
 import static com.teuida.jikimi.slack.util.SlackValueParser.extractStringSet;
+import static com.teuida.jikimi.slack.util.SlackValueParser.extractStringValue;
 
 import com.slack.api.bolt.context.builtin.ViewSubmissionContext;
 import com.slack.api.bolt.request.builtin.ViewSubmissionRequest;
@@ -98,8 +98,8 @@ public class CreateIssueRequest extends IssueRequest {
                 .courseTypes(extractOptionalEnumSet(values, BLOCK_COURSE_TYPE, ACTION_COURSE_TYPE, CourseType.class))
                 .usergroupIds(extractStringSet(values, BLOCK_USERGROUP, ACTION_USERGROUP))
                 .applicationTypes(extractEnumSet(values, BLOCK_APPLICATION_TYPE, ACTION_APPLICATION_TYPE, ApplicationType.class))
-                .title(extractString(values, BLOCK_TITLE, ACTION_TITLE))
-                .description(extractString(values, BLOCK_DESCRIPTION, ACTION_DESCRIPTION))
+                .title(extractStringValue(values, BLOCK_TITLE, ACTION_TITLE))
+                .description(extractStringValue(values, BLOCK_DESCRIPTION, ACTION_DESCRIPTION))
                 .userEmail(extractOptionalString(values, BLOCK_USER_EMAIL, ACTION_USER_EMAIL).orElse(null))
                 .build();
 

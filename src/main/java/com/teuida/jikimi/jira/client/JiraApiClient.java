@@ -2,11 +2,14 @@ package com.teuida.jikimi.jira.client;
 
 import com.teuida.jikimi.jira.client.dto.request.CreateJiraIssueRequest;
 import com.teuida.jikimi.jira.client.dto.response.JiraIssueResponse;
+import com.teuida.jikimi.jira.client.dto.response.JiraProjectResponse;
+import com.teuida.jikimi.jira.client.dto.response.JiraSearchPriorityResponse;
 import com.teuida.jikimi.jira.client.dto.response.JiraUserResponse;
 import com.teuida.jikimi.jira.config.JiraFeignConfig;
 import java.util.List;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -53,4 +56,12 @@ public interface JiraApiClient {
      */
     @PostMapping("/rest/api/3/issue")
     JiraIssueResponse createIssue(@RequestBody CreateJiraIssueRequest request);
+
+    // 프로젝트의 Issue Type 조회
+    @GetMapping("/rest/api/3/project/{projectKey}")
+    JiraProjectResponse getProject(@PathVariable String projectKey);
+
+    // 특정 프로젝트에서 사용 가능한 우선순위만 조회
+    @GetMapping("/rest/api/3/priority/search")
+    JiraSearchPriorityResponse searchPriorities(@RequestParam(required = false) String projectId);
 }

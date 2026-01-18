@@ -9,16 +9,15 @@ import com.slack.api.model.Usergroup;
 import com.teuida.jikimi.domain.exception.NotFoundException;
 import java.util.Collections;
 import java.util.List;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class SlackApiService {
-    private final Slack slack;
+    
+    private final Slack slack = Slack.getInstance();
 
     @Value("${slack.bot-token}")
     private String botToken;
