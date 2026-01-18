@@ -2,6 +2,7 @@ package com.teuida.jikimi.jira.client;
 
 import com.teuida.jikimi.jira.client.dto.response.JiraProjectResponse;
 import com.teuida.jikimi.jira.client.dto.response.JiraSearchPriorityResponse;
+import com.teuida.jikimi.jira.client.dto.response.JiraTransitionsResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,9 +26,11 @@ class JiraApiClientTest {
         // when
         JiraProjectResponse project = jiraApiClient.getProject(projectKey);
         JiraSearchPriorityResponse jiraSearchPriority = jiraApiClient.searchPriorities(project.id());
+        JiraTransitionsResponse transitions = jiraApiClient.getTransitions("XTDL-28");
 
         // then
         System.out.println(project);
         System.out.println(jiraSearchPriority);
+        System.out.println(transitions);
     }
 }

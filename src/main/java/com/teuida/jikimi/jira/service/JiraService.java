@@ -1,11 +1,15 @@
 package com.teuida.jikimi.jira.service;
 
+import com.teuida.jikimi.domain.exception.NotFoundException;
 import com.teuida.jikimi.domain.issue.model.Issue;
 import com.teuida.jikimi.domain.issue.service.UserMappingService;
 import com.teuida.jikimi.jira.client.JiraApiClient;
 import com.teuida.jikimi.jira.client.dto.request.CreateJiraIssueRequest;
+import com.teuida.jikimi.jira.client.dto.request.TransitionJiraIssueRequest;
 import com.teuida.jikimi.jira.client.dto.response.JiraIssueResponse;
+import com.teuida.jikimi.jira.client.dto.response.JiraTransitionsResponse.TransitionDetail;
 import com.teuida.jikimi.jira.service.dto.JiraIssue;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,11 +52,19 @@ public class JiraService {
                 jiraPriorityId
         );
 
-        log.debug("createJiraIssueRequest : {}", createJiraIssueRequest);
-
         // 이슈 생성
         JiraIssueResponse jiraIssueResponse = jiraApiClient.createIssue(createJiraIssueRequest);
 
         return JiraIssue.of(jiraIssueResponse, jiraAccountId);
+    }
+
+    public void completeIssue(List<TransitionDetail> transitions, String jiraIssueKey) {
+        TransitionDetail completedTransitionDetail = transitions.stream()
+                .filter(transitionDetail -> transitionDetail.name().equals("완료"))
+                .findFirst()
+                .orElseThrow(() -> new NotFoundException("Jira 티켓에 '완료' 상태가 존재하지 않습니다."));
+
+        // 완료로 전환
+        jiraApiClient.transitionIssue(jiraIssueKey, TransitionJiraIssueRequest.of(completedTransitionDetail.id()));
     }
 }

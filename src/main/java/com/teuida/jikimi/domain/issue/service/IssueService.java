@@ -69,7 +69,7 @@ public class IssueService {
                 .collect(Collectors.toSet());
         issueUsergroupEntityRepository.saveAll(usergroupEntities);
 
-        return Issue.of(issueEntity, applicationEntities, courseEntities, usergroupEntities);
+        return Issue.createWithOnlySlackContext(issueEntity, applicationEntities, courseEntities, usergroupEntities);
     }
 
     @Transactional
@@ -105,7 +105,8 @@ public class IssueService {
         // 이슈 유저 그룹 조회
         Set<IssueUsergroupEntity> findIssueUsergroupEntites = issueUsergroupEntityRepository.findByIssueEntity(findIssueEntity);
 
-        return Issue.of(findIssueEntity, findIssueApplicationEntities, findIssueCourseEntities, findIssueUsergroupEntites);
+        return Issue.createWithOnlySlackContext(findIssueEntity, findIssueApplicationEntities, findIssueCourseEntities,
+                findIssueUsergroupEntites);
     }
 
     public Issue getIssue(Long issueId) {
@@ -131,7 +132,7 @@ public class IssueService {
         IssueEntity findIssueEntity = issueEntityRepository.findById(issueId)
                 .orElseThrow(() -> new NotFoundException(IssueEntity.class));
 
-        return Issue.from(findIssueEntity);
+        return Issue.create(findIssueEntity);
     }
 
     @Transactional
@@ -175,6 +176,6 @@ public class IssueService {
         // 이슈 Jira 이슈 정보 변경
         findIssueEntity.changeJiraIssue(jiraIssue);
 
-        return Issue.from(findIssueEntity);
+        return Issue.create(findIssueEntity);
     }
 }

@@ -78,10 +78,10 @@ public class Issue {
                 .build();
     }
 
-    /**
-     * Entity로부터 도메인 객체 생성 (관계 엔티티 제외)
-     */
-    public static Issue from(IssueEntity issueEntity) {
+    public static Issue createWithOnlySlackContext(IssueEntity issueEntity,
+                                                   Set<IssueApplicationEntity> applicationEntities,
+                                                   Set<IssueCourseEntity> courseEntities,
+                                                   Set<IssueUsergroupEntity> issueUsergroupEntities) {
         return Issue.builder()
                 .id(issueEntity.getId())
                 .status(issueEntity.getStatus())
@@ -89,17 +89,29 @@ public class Issue {
                 .title(issueEntity.getTitle())
                 .description(issueEntity.getDescription())
                 .userEmail(issueEntity.getUserEmail())
-                .slackContext(SlackContext.builder()
-                        .channelId(issueEntity.getSlackChannelId())
-                        .messageTs(issueEntity.getSlackMessageTs())
-                        .reporterId(issueEntity.getSlackReporterId())
-                        .assigneeId(issueEntity.getSlackAssigneeId())
-                        .build())
-                .jiraContext(JiraContext.builder()
-                        .issueKey(issueEntity.getJiraIssueKey())
-                        .issueBrowserUrl(issueEntity.getJiraIssueBrowserUrl())
-                        .assigneeId(issueEntity.getJiraAssigneeId())
-                        .build())
+                .applicationTypes(applicationEntities.stream()
+                        .map(IssueApplicationEntity::getType)
+                        .collect(Collectors.toSet()))
+                .courseTypes(courseEntities.stream()
+                        .map(IssueCourseEntity::getType)
+                        .collect(Collectors.toSet()))
+                .slackContext(SlackContext.create(issueEntity, issueUsergroupEntities))
+                .build();
+    }
+
+    /**
+     * Entity로부터 도메인 객체 생성 (관계 엔티티 제외)
+     */
+    public static Issue create(IssueEntity issueEntity) {
+        return Issue.builder()
+                .id(issueEntity.getId())
+                .status(issueEntity.getStatus())
+                .environment(issueEntity.getEnvironment())
+                .title(issueEntity.getTitle())
+                .description(issueEntity.getDescription())
+                .userEmail(issueEntity.getUserEmail())
+                .slackContext(SlackContext.create(issueEntity, Collections.emptySet()))
+                .jiraContext(JiraContext.create(issueEntity))
                 .build();
     }
 
@@ -116,11 +128,12 @@ public class Issue {
      * 이슈가 완전히 할당되었는지 확인 (Slack + Jira 모두)
      */
     public boolean isFullyAssigned() {
-        return slackContext != null && slackContext.isAssignedTo() && jiraContext != null && jiraContext.hasAssignee();
+        return slackContext != null && slackContext.isAssignedTo()
+                && jiraContext != null && jiraContext.hasAssignee();
     }
 
     public boolean isOnlySlackAssigned() {
-        return jiraContext != null && !jiraContext.hasAssignee() && slackContext != null && slackContext.isAssignedTo();
+        return jiraContext == null && slackContext != null && slackContext.isAssignedTo();
     }
 
     /**
@@ -136,6 +149,18 @@ public class Issue {
 
         @Builder.Default
         private final Set<String> assignedUsergroupIds = Collections.emptySet();
+
+        public static SlackContext create(IssueEntity issueEntity, Set<IssueUsergroupEntity> issueUsergroupEntities) {
+            return SlackContext.builder()
+                    .channelId(issueEntity.getSlackChannelId())
+                    .messageTs(issueEntity.getSlackMessageTs())
+                    .reporterId(issueEntity.getSlackReporterId())
+                    .assigneeId(issueEntity.getSlackAssigneeId())
+                    .assignedUsergroupIds(issueUsergroupEntities.stream()
+                            .map(IssueUsergroupEntity::getSlackUsergroupId)
+                            .collect(Collectors.toSet()))
+                    .build();
+        }
 
         /**
          * Slack 스레드 URL 생성
@@ -186,6 +211,14 @@ public class Issue {
         private final String assigneeId;
         private final String issueType;
         private final String priority;
+
+        public static JiraContext create(IssueEntity issueEntity) {
+            return JiraContext.builder()
+                    .issueKey(issueEntity.getJiraIssueKey())
+                    .issueBrowserUrl(issueEntity.getJiraIssueBrowserUrl())
+                    .assigneeId(issueEntity.getJiraAssigneeId())
+                    .build();
+        }
 
         /**
          * Jira 티켓이 생성되었는지 확인

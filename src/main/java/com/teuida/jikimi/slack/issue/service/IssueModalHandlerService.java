@@ -78,6 +78,7 @@ public class IssueModalHandlerService {
         client.chatUpdate(builder -> builder
                 .channel(channelId)
                 .ts(messageTs)
+                .text(String.format("%s 티켓이 생성되었습니다.", appliedJiraIssue.getTitle()))
                 .blocks(IssueBlockBuilder.buildIssueBlocks(appliedJiraIssue))
         );
 

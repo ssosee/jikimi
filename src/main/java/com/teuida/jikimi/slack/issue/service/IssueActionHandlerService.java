@@ -8,12 +8,15 @@ import com.slack.api.bolt.response.Response;
 import com.slack.api.methods.MethodsClient;
 import com.slack.api.methods.SlackApiException;
 import com.teuida.jikimi.domain.issue.model.Issue;
+import com.teuida.jikimi.domain.issue.model.Issue.JiraContext;
 import com.teuida.jikimi.domain.issue.service.IssueService;
 import com.teuida.jikimi.domain.issue.service.dto.AssignIssueRequest;
 import com.teuida.jikimi.domain.issue.service.dto.SolveIssueRequest;
 import com.teuida.jikimi.jira.client.dto.response.JiraProjectResponse;
 import com.teuida.jikimi.jira.client.dto.response.JiraSearchPriorityResponse;
+import com.teuida.jikimi.jira.client.dto.response.JiraTransitionsResponse;
 import com.teuida.jikimi.jira.service.JiraMetadataService;
+import com.teuida.jikimi.jira.service.JiraService;
 import com.teuida.jikimi.slack.issue.IssueBlockBuilder;
 import com.teuida.jikimi.slack.issue.IssueModalBuilder;
 import com.teuida.jikimi.slack.util.RequestValidator;
@@ -31,6 +34,7 @@ public class IssueActionHandlerService {
     private final IssueService issueService;
     private final RequestValidator requestValidator;
     private final JiraMetadataService jiraMetadataService;
+    private final JiraService jiraService;
 
     public Response handleAssignToMe(BlockActionRequest req, ActionContext ctx)
             throws SlackApiException, IOException {
@@ -130,6 +134,18 @@ public class IssueActionHandlerService {
         Issue solvedIssue = issueService.solve(solveIssueRequest);
         String channelId = solvedIssue.getSlackContext().getChannelId();
         String messageTs = solvedIssue.getSlackContext().getMessageTs();
+
+        // 이슈에 Jira 티켓이 존재하는 경우
+        if (solvedIssue.getJiraContext() != null) {
+            JiraContext jiraContext = solvedIssue.getJiraContext();
+            String jiraIssueKey = jiraContext.getIssueKey();
+
+            // Jira 사용 가능한 전환 조회
+            JiraTransitionsResponse transitions = jiraMetadataService.getTransitions(jiraIssueKey);
+
+            // Jira 티켓을 완료 상태로 변경
+            jiraService.completeIssue(transitions.transitions(), jiraIssueKey);
+        }
 
         // 해당 스레드에 이슈 해결 메시지 추가
         client.chatPostMessage(builder -> builder

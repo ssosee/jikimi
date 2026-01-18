@@ -1,9 +1,11 @@
 package com.teuida.jikimi.jira.client;
 
 import com.teuida.jikimi.jira.client.dto.request.CreateJiraIssueRequest;
+import com.teuida.jikimi.jira.client.dto.request.TransitionJiraIssueRequest;
 import com.teuida.jikimi.jira.client.dto.response.JiraIssueResponse;
 import com.teuida.jikimi.jira.client.dto.response.JiraProjectResponse;
 import com.teuida.jikimi.jira.client.dto.response.JiraSearchPriorityResponse;
+import com.teuida.jikimi.jira.client.dto.response.JiraTransitionsResponse;
 import com.teuida.jikimi.jira.client.dto.response.JiraUserResponse;
 import com.teuida.jikimi.jira.config.JiraFeignConfig;
 import java.util.List;
@@ -15,8 +17,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
- * <p>참고</p>
- * <a href="https://developer.atlassian.com/cloud/jira/platform/rest/v3/intro/">jira api docs</a>
+ * <p>참고1</p>
+ * <a href="https://developer.atlassian.com/cloud/jira/platform/rest/v3/intro/">official jira api docs</a>
+ * <p>참고2</p>
+ * <a href="https://jira-api.apidog.io/">jira api dog</a>
  */
 @FeignClient(
         name = "jira-api",
@@ -64,4 +68,13 @@ public interface JiraApiClient {
     // 특정 프로젝트에서 사용 가능한 우선순위만 조회
     @GetMapping("/rest/api/3/priority/search")
     JiraSearchPriorityResponse searchPriorities(@RequestParam(required = false) String projectId);
+
+    // 가능한 전환 목록 조회
+    @GetMapping("/rest/api/3/issue/{issueIdOrKey}/transitions")
+    JiraTransitionsResponse getTransitions(@PathVariable String issueIdOrKey);
+
+    // 티켓 상태 변경
+    @PostMapping("/rest/api/3/issue/{issueIdOrKey}/transitions")
+    void transitionIssue(@PathVariable String issueIdOrKey, @RequestBody TransitionJiraIssueRequest request);
+
 }
