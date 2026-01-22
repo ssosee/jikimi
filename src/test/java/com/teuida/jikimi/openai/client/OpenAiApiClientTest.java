@@ -2,6 +2,7 @@ package com.teuida.jikimi.openai.client;
 
 import com.teuida.jikimi.openai.client.dto.request.CreateEmbeddingsRequest;
 import com.teuida.jikimi.openai.client.dto.response.CreateEmbeddingsResponse;
+import com.teuida.jikimi.openai.client.dto.response.OpenAiResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +20,8 @@ class OpenAiApiClientTest {
         // given
 
         // when
-        CreateEmbeddingsResponse embeddings = openAiApiClient.createEmbeddings(new CreateEmbeddingsRequest("hello world!"));
+        OpenAiResponse<CreateEmbeddingsResponse> embeddings = openAiApiClient.createEmbeddings(
+                new CreateEmbeddingsRequest("hello world!"));
         // then
         System.out.println(embeddings);
     }

@@ -42,6 +42,7 @@ dependencies {
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
     runtimeOnly 'com.h2database:h2'
     annotationProcessor 'org.projectlombok:lombok'
+    // implementation "com.fasterxml.jackson.core:jackson-databind"
 
     // QueryDSL
     implementation 'com.querydsl:querydsl-jpa:5.1.0:jakarta'

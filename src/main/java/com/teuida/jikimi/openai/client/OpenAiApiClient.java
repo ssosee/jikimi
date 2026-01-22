@@ -2,6 +2,7 @@ package com.teuida.jikimi.openai.client;
 
 import com.teuida.jikimi.openai.client.dto.request.CreateEmbeddingsRequest;
 import com.teuida.jikimi.openai.client.dto.response.CreateEmbeddingsResponse;
+import com.teuida.jikimi.openai.client.dto.response.OpenAiResponse;
 import com.teuida.jikimi.openai.config.OpenAiFeignConfig;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,5 +19,5 @@ public interface OpenAiApiClient {
      * <a href="https://platform.openai.com/docs/api-reference/embeddings/create">참고</a>
      */
     @PostMapping("/v1/embeddings")
-    CreateEmbeddingsResponse createEmbeddings(@RequestBody CreateEmbeddingsRequest request);
+    OpenAiResponse<CreateEmbeddingsResponse> createEmbeddings(@RequestBody CreateEmbeddingsRequest request);
 }

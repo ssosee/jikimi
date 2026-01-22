@@ -11,6 +11,7 @@ import com.teuida.jikimi.domain.issue.entity.IssueApplicationEntity;
 import com.teuida.jikimi.domain.issue.entity.IssueCourseEntity;
 import com.teuida.jikimi.domain.issue.entity.IssueEntity;
 import com.teuida.jikimi.domain.issue.entity.IssueUsergroupEntity;
+import com.teuida.jikimi.domain.issue.entity.embedded.Embeddings;
 import com.teuida.jikimi.domain.issue.model.Issue;
 import com.teuida.jikimi.domain.issue.repository.IssueApplicationEntityRepository;
 import com.teuida.jikimi.domain.issue.repository.IssueCourseEntityRepository;
@@ -23,12 +24,17 @@ import com.teuida.jikimi.domain.issue.service.dto.CreateJiraIssueRequest;
 import com.teuida.jikimi.domain.issue.service.dto.SolveIssueRequest;
 import com.teuida.jikimi.jira.service.dto.JiraIssue;
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -42,11 +48,11 @@ public class IssueService {
 
     @Transactional
     @IssueLogging(actionType = ActionType.CREATED)
-    public Issue createIssue(CreateIssueRequest request) {
+    public Issue createIssue(CreateIssueRequest request, List<Double> embeddings) {
         LocalDateTime now = timeProvider.nowDateTime();
 
         // 이슈 저장
-        IssueEntity issueEntity = IssueEntity.create(request);
+        IssueEntity issueEntity = IssueEntity.create(request, embeddings);
         issueEntityRepository.save(issueEntity);
 
         // 이슈 애플리케이션 타입 저장
@@ -177,5 +183,31 @@ public class IssueService {
         findIssueEntity.changeJiraIssue(jiraIssue);
 
         return Issue.create(findIssueEntity);
+    }
+
+    public List<Issue> findTopSimilarityIssues(Long issueId, int limit) {
+        // 이슈 조회
+        IssueEntity findIssueEntity = issueEntityRepository.findById(issueId)
+                .orElseThrow(() -> new NotFoundException(IssueEntity.class));
+
+        Embeddings targetEmbeddings = findIssueEntity.getEmbeddings();
+
+        if (targetEmbeddings == null) {
+            log.warn("해당 이슈는 임베딩 정보가 존재하지 않습니다.");
+            return Collections.emptyList();
+        }
+
+        // 최근 이슈 2000개 조회
+        List<IssueEntity> findIssueEntities = issueEntityRepository.findTop2000WithEmbeddingsExcluding(issueId);
+
+        return findIssueEntities.stream()
+                .map(issueEntity -> {
+                    // 코사인 유사도 계산
+                    double similarityScore = issueEntity.getEmbeddings().cosineSimilarity(targetEmbeddings);
+                    return Issue.create(issueEntity, similarityScore);
+                })
+                .sorted(Comparator.comparingDouble(Issue::getSimilarityScore).reversed())
+                .limit(limit)
+                .toList();
     }
 }

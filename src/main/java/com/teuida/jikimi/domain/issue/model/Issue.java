@@ -27,6 +27,7 @@ public class Issue {
     private final String title;
     private final String description;
     private final String userEmail;
+    private final Double similarityScore;
 
     /**
      * -- GETTER -- 불변 컬렉션 반환
@@ -110,6 +111,23 @@ public class Issue {
                 .title(issueEntity.getTitle())
                 .description(issueEntity.getDescription())
                 .userEmail(issueEntity.getUserEmail())
+                .slackContext(SlackContext.create(issueEntity, Collections.emptySet()))
+                .jiraContext(JiraContext.create(issueEntity))
+                .build();
+    }
+
+    /**
+     * Entity로부터 도메인 객체 생성 (관계 엔티티 제외)
+     */
+    public static Issue create(IssueEntity issueEntity, Double similarityScore) {
+        return Issue.builder()
+                .id(issueEntity.getId())
+                .status(issueEntity.getStatus())
+                .environment(issueEntity.getEnvironment())
+                .title(issueEntity.getTitle())
+                .description(issueEntity.getDescription())
+                .userEmail(issueEntity.getUserEmail())
+                .similarityScore(similarityScore)
                 .slackContext(SlackContext.create(issueEntity, Collections.emptySet()))
                 .jiraContext(JiraContext.create(issueEntity))
                 .build();

@@ -108,4 +108,17 @@ public class CreateIssueRequest extends IssueRequest {
 
         return request;
     }
+
+    public String createPrompt() {
+        StringBuilder prompt = new StringBuilder();
+        prompt.append("Title:").append(title).append("\n");
+        prompt.append("Description:").append(description).append("\n");
+        prompt.append("Environment:").append(environment).append("\n");
+        prompt.append("Application Types:").append(String.join(", ",
+                applicationTypes.stream().map(Enum::name).toList())).append("\n");
+        prompt.append("Course Types:").append(String.join(", ",
+                courseTypes.stream().map(Enum::name).toList())).append("\n");
+
+        return prompt.toString();
+    }
 }

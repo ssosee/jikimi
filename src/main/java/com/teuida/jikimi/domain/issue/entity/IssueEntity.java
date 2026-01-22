@@ -2,9 +2,11 @@ package com.teuida.jikimi.domain.issue.entity;
 
 import com.teuida.jikimi.common.enums.Environment;
 import com.teuida.jikimi.common.enums.IssueStatus;
+import com.teuida.jikimi.domain.issue.entity.embedded.Embeddings;
 import com.teuida.jikimi.domain.issue.service.dto.CreateIssueRequest;
 import com.teuida.jikimi.jira.service.dto.JiraIssue;
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -13,6 +15,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -69,10 +72,13 @@ public class IssueEntity extends BaseTimeEntity {
     @Column(name = "jira_assignee_id", length = 50)
     private String jiraAssigneeId;
 
+    @Embedded
+    private Embeddings embeddings;
+
     @Builder
     private IssueEntity(Environment environment, IssueStatus status, String title, String description, String userEmail,
                         String slackReporterId, String slackAssigneeId, String slackChannelId, String slackMessageTs,
-                        String jiraIssueKey, String jiraIssueBrowserUrl, String jiraAssigneeId) {
+                        String jiraIssueKey, String jiraIssueBrowserUrl, String jiraAssigneeId, Embeddings embeddings) {
         this.environment = environment;
         this.status = status;
         this.title = title;
@@ -85,9 +91,10 @@ public class IssueEntity extends BaseTimeEntity {
         this.jiraIssueKey = jiraIssueKey;
         this.jiraIssueBrowserUrl = jiraIssueBrowserUrl;
         this.jiraAssigneeId = jiraAssigneeId;
+        this.embeddings = embeddings;
     }
 
-    public static IssueEntity create(CreateIssueRequest request) {
+    public static IssueEntity create(CreateIssueRequest request, List<Double> embeddings) {
         return IssueEntity.builder()
                 .slackChannelId(request.getSlackChannelId())
                 .slackReporterId(request.getSlackReporterId())
@@ -96,6 +103,7 @@ public class IssueEntity extends BaseTimeEntity {
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .userEmail(request.getUserEmail())
+                .embeddings(new Embeddings(embeddings))
                 .build();
     }
 
