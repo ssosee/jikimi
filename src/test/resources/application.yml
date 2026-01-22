@@ -4,3 +4,4 @@ spring:
     include:
       - slack
       - jira
+      - open-ai

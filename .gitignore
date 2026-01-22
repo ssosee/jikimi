@@ -41,5 +41,6 @@ src/main/resources/application-prod.yml
 src/main/resources/application-dev-discovery.yml
 src/main/resources/application-slack.yml
 src/main/resources/application-jira.yml
+src/main/resources/application-open-ai.yml
 src/test/resources/application-slack.yml
 src/test/resources/application-jira.yml
