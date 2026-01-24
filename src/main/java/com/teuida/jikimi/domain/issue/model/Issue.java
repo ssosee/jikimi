@@ -8,6 +8,7 @@ import com.teuida.jikimi.domain.issue.entity.IssueApplicationEntity;
 import com.teuida.jikimi.domain.issue.entity.IssueCourseEntity;
 import com.teuida.jikimi.domain.issue.entity.IssueEntity;
 import com.teuida.jikimi.domain.issue.entity.IssueUsergroupEntity;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -28,6 +29,7 @@ public class Issue {
     private final String description;
     private final String userEmail;
     private final Double similarityScore;
+    private final LocalDateTime createDateTime;
 
     /**
      * -- GETTER -- 불변 컬렉션 반환
@@ -56,6 +58,7 @@ public class Issue {
                 .title(issueEntity.getTitle())
                 .description(issueEntity.getDescription())
                 .userEmail(issueEntity.getUserEmail())
+                .createDateTime(issueEntity.getCreateDateTime())
                 .applicationTypes(applicationEntities.stream()
                         .map(IssueApplicationEntity::getType)
                         .collect(Collectors.toSet()))
@@ -90,6 +93,7 @@ public class Issue {
                 .title(issueEntity.getTitle())
                 .description(issueEntity.getDescription())
                 .userEmail(issueEntity.getUserEmail())
+                .createDateTime(issueEntity.getCreateDateTime())
                 .applicationTypes(applicationEntities.stream()
                         .map(IssueApplicationEntity::getType)
                         .collect(Collectors.toSet()))
@@ -111,6 +115,7 @@ public class Issue {
                 .title(issueEntity.getTitle())
                 .description(issueEntity.getDescription())
                 .userEmail(issueEntity.getUserEmail())
+                .createDateTime(issueEntity.getCreateDateTime())
                 .slackContext(SlackContext.create(issueEntity, Collections.emptySet()))
                 .jiraContext(JiraContext.create(issueEntity))
                 .build();
@@ -127,6 +132,7 @@ public class Issue {
                 .title(issueEntity.getTitle())
                 .description(issueEntity.getDescription())
                 .userEmail(issueEntity.getUserEmail())
+                .createDateTime(issueEntity.getCreateDateTime())
                 .similarityScore(similarityScore)
                 .slackContext(SlackContext.create(issueEntity, Collections.emptySet()))
                 .jiraContext(JiraContext.create(issueEntity))

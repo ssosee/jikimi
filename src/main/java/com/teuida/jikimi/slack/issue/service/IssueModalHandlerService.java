@@ -20,7 +20,10 @@ import com.teuida.jikimi.openai.client.dto.response.OpenAiResponse;
 import com.teuida.jikimi.slack.issue.IssueBlockBuilder;
 import com.teuida.jikimi.slack.util.RequestValidator;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.stream.IntStream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -70,23 +73,32 @@ public class IssueModalHandlerService {
             // 유사한 이슈 조회
             List<Issue> topSimilarityIssues = issueService.findTopSimilarityIssues(issue.getId(), 3);
 
-            StringBuilder message = new StringBuilder();
-            message.append(String.format("🔎 유사한 이슈 %d개를 조회했습니다.", topSimilarityIssues.size()));
-            for (Issue topSimilarityIssue : topSimilarityIssues) {
-                String title = topSimilarityIssue.getTitle();
-                String threadUrl = topSimilarityIssue.getSlackContext().getThreadUrl(slackWorkspaceUrl);
+            if (!topSimilarityIssues.isEmpty()) {
+                StringBuilder message = new StringBuilder("🔎 *비슷한 이슈...*\n");
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yy/MM/dd");
 
-                message.append(String.format("* <%s | %s>\n", threadUrl, title));
+                IntStream.range(0, topSimilarityIssues.size()).forEach(index -> {
+                    Issue topSimilarityIssue = topSimilarityIssues.get(index);
+                    String title = topSimilarityIssue.getTitle();
+                    String threadUrl = topSimilarityIssue.getSlackContext().getThreadUrl(slackWorkspaceUrl);
+                    LocalDateTime createDateTime = topSimilarityIssue.getCreateDateTime();
+                    String formattedDate = createDateTime.format(formatter);
+
+                    message.append(String.format("%d. *<%s|%s>* (%s)\n",
+                            index + 1,
+                            threadUrl,
+                            title,
+                            formattedDate));
+                });
+
+                // 해당 스레드에 유사한 이슈 메시지 추가
+                client.chatPostMessage(builder -> builder
+                        .channel(channelId)
+                        .token(ctx.getBotToken())
+                        .threadTs(messageTs)
+                        .text(message.toString())
+                );
             }
-
-            // 해당 스레드에 유사한 이슈 메시지 추가
-            client.chatPostMessage(builder -> builder
-                    .channel(channelId)
-                    .token(ctx.getBotToken())
-                    .threadTs(messageTs)
-                    //.text(message.toString())
-                    .blocks(IssueBlockBuilder.buildSimilarityIssueBlocks(topSimilarityIssues, slackWorkspaceUrl))
-            );
         }
 
         return ctx.ack();

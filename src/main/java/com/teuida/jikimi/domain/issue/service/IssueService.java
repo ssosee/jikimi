@@ -39,6 +39,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class IssueService {
+    public static final double SIMILARITY_SCORE_LIMIT = 0.75;
+
     private final TimeProvider timeProvider;
     private final IssueQueryRepository issueQueryRepository;
     private final IssueEntityRepository issueEntityRepository;
@@ -207,6 +209,7 @@ public class IssueService {
                     return Issue.create(issueEntity, similarityScore);
                 })
                 .sorted(Comparator.comparingDouble(Issue::getSimilarityScore).reversed())
+                .filter(issue -> issue.getSimilarityScore() > SIMILARITY_SCORE_LIMIT)
                 .limit(limit)
                 .toList();
     }

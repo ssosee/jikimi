@@ -20,7 +20,6 @@ import static com.teuida.jikimi.slack.issue.IssueModalKeys.VALUE_SOLVE;
 import com.slack.api.model.block.HeaderBlock;
 import com.slack.api.model.block.LayoutBlock;
 import com.slack.api.model.block.SectionBlock;
-import com.slack.api.model.block.composition.MarkdownTextObject;
 import com.slack.api.model.block.element.ButtonElement;
 import com.slack.api.model.block.element.UsersSelectElement;
 import com.teuida.jikimi.common.enums.ApplicationType;
@@ -30,6 +29,7 @@ import com.teuida.jikimi.domain.issue.model.Issue;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public abstract class IssueBlockBuilder {
 
@@ -57,20 +57,16 @@ public abstract class IssueBlockBuilder {
 
     public static List<LayoutBlock> buildSimilarityIssueBlocks(List<Issue> topSimilarityIssues, String slackWorkspaceUrl) {
         List<LayoutBlock> blocks = new ArrayList<>();
-        blocks.add(buildHeader(String.format("🔎 *유사한 이슈 %d개를 조회했습니다.*", topSimilarityIssues.size())));
-        blocks.add(divider());
+        blocks.add(section(s -> s.text(markdownText("🔎 비슷한 이슈..."))));
 
         // 각 이슈
-        for (Issue topSimilarityIssue : topSimilarityIssues) {
+        IntStream.range(0, topSimilarityIssues.size()).forEach(index -> {
+            Issue topSimilarityIssue = topSimilarityIssues.get(index);
             String title = topSimilarityIssue.getTitle();
             String threadUrl = topSimilarityIssue.getSlackContext().getThreadUrl(slackWorkspaceUrl);
 
-            blocks.add(SectionBlock.builder()
-                    .text(MarkdownTextObject.builder()
-                            .text(String.format("* <%s|%s>", threadUrl, title))
-                            .build())
-                    .build());
-        }
+            blocks.add(section(s -> s.text(markdownText(String.format("%d. <%s|%s>\n", index + 1, threadUrl, title)))));
+        });
 
         return blocks;
     }
@@ -149,7 +145,7 @@ public abstract class IssueBlockBuilder {
         return List.of(
                 header(h -> h.text(plainText(pt -> pt
                         .emoji(true)
-                        .text("✏️ 이슈 내용")
+                        .text("👀 이슈 내용")
                 ))),
                 section(s -> s.text(markdownText(issue.getDescription())))
         );
