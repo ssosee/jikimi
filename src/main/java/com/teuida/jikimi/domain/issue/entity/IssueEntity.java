@@ -13,6 +13,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import java.util.List;
@@ -23,10 +24,14 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
-@Table(name = "issue", uniqueConstraints = {
-        @UniqueConstraint(name = "uk_issues_01", columnNames = {"slack_assignee_id", "slack_message_ts"}),
-        @UniqueConstraint(name = "uk_issues_02", columnNames = {"jira_issue_key"})
-})
+@Table(name = "issue",
+        indexes = {
+                @Index(name = "idx_issue_01", columnList = "status, create_date_time")
+        },
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_issues_01", columnNames = {"slack_assignee_id", "slack_message_ts"}),
+                @UniqueConstraint(name = "uk_issues_02", columnNames = {"jira_issue_key"})
+        })
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class IssueEntity extends BaseTimeEntity {
     @Id

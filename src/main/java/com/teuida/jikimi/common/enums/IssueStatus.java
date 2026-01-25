@@ -6,9 +6,9 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum IssueStatus {
-    OPEN("열림"),
-    IN_PROGRESS("진행 중"),
-    CLOSED("닫힘");
+    OPEN("접수"),
+    IN_PROGRESS("진행중"),
+    CLOSED("완료");
 
     private final String displayName;
 }

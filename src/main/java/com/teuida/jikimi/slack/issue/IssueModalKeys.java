@@ -3,6 +3,7 @@ package com.teuida.jikimi.slack.issue;
 abstract public class IssueModalKeys {
     // Command
     public static final String COMMAND_ISSUE = "/issue";
+    public static final String COMMAND_ISSUE_STATS = "/issue-stats";
 
     // Callback IDs
     public static final String ISSUE_MODAL = "issue_modal";
@@ -40,4 +41,8 @@ abstract public class IssueModalKeys {
     public static final String VALUE_SOLVE = "value_solve";
     public static final String VALUE_ASSIGN_TO_ME = "value_assign_to_me";
     public static final String VALUE_DELETE_ISSUE = "value_delete_issue";
+
+    // ===== Issue Stats Action IDs =====
+    public static final String ACTION_TAG_ASSIGNEES = "action_tag_assignees";
+    public static final String ACTION_PUBLISH_STATS = "action_publish_stats";
 }

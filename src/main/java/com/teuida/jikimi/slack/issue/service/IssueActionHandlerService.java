@@ -136,7 +136,7 @@ public class IssueActionHandlerService {
         String messageTs = solvedIssue.getSlackContext().getMessageTs();
 
         // 이슈에 Jira 티켓이 존재하는 경우
-        if (solvedIssue.getJiraContext() != null) {
+        if (solvedIssue.getJiraContext().isCreated()) {
             JiraContext jiraContext = solvedIssue.getJiraContext();
             String jiraIssueKey = jiraContext.getIssueKey();
 
