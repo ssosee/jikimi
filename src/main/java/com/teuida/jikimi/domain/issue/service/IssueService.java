@@ -13,10 +13,10 @@ import com.teuida.jikimi.domain.issue.entity.IssueEntity;
 import com.teuida.jikimi.domain.issue.entity.IssueUsergroupEntity;
 import com.teuida.jikimi.domain.issue.entity.embedded.Embeddings;
 import com.teuida.jikimi.domain.issue.model.Issue;
+import com.teuida.jikimi.domain.issue.model.IssueRelations;
 import com.teuida.jikimi.domain.issue.repository.IssueApplicationEntityRepository;
 import com.teuida.jikimi.domain.issue.repository.IssueCourseEntityRepository;
 import com.teuida.jikimi.domain.issue.repository.IssueEntityRepository;
-import com.teuida.jikimi.domain.issue.repository.IssueQueryRepository;
 import com.teuida.jikimi.domain.issue.repository.IssueUsergroupEntityRepository;
 import com.teuida.jikimi.domain.issue.service.dto.AssignIssueRequest;
 import com.teuida.jikimi.domain.issue.service.dto.CreateIssueRequest;
@@ -42,7 +42,6 @@ public class IssueService {
     public static final double SIMILARITY_SCORE_LIMIT = 0.75;
 
     private final TimeProvider timeProvider;
-    private final IssueQueryRepository issueQueryRepository;
     private final IssueEntityRepository issueEntityRepository;
     private final IssueApplicationEntityRepository issueApplicationEntityRepository;
     private final IssueCourseEntityRepository issueCourseEntityRepository;
@@ -77,7 +76,8 @@ public class IssueService {
                 .collect(Collectors.toSet());
         issueUsergroupEntityRepository.saveAll(usergroupEntities);
 
-        return Issue.createWithOnlySlackContext(issueEntity, applicationEntities, courseEntities, usergroupEntities);
+        IssueRelations relations = new IssueRelations(applicationEntities, courseEntities, usergroupEntities);
+        return Issue.of(issueEntity, relations);
     }
 
     @Transactional
@@ -103,18 +103,8 @@ public class IssueService {
         // 이슈 진행 상태로 변경
         findIssueEntity.inProgress(slackAssigneeId);
 
-        // 이슈 애플리케이션 조회
-        Set<IssueApplicationEntity> findIssueApplicationEntities = issueApplicationEntityRepository.findByIssueEntity(
-                findIssueEntity);
-
-        // 이슈 코스 조회
-        Set<IssueCourseEntity> findIssueCourseEntities = issueCourseEntityRepository.findByIssueEntity(findIssueEntity);
-
-        // 이슈 유저 그룹 조회
-        Set<IssueUsergroupEntity> findIssueUsergroupEntites = issueUsergroupEntityRepository.findByIssueEntity(findIssueEntity);
-
-        return Issue.createWithOnlySlackContext(findIssueEntity, findIssueApplicationEntities, findIssueCourseEntities,
-                findIssueUsergroupEntites);
+        var relations = loadRelations(findIssueEntity);
+        return Issue.of(findIssueEntity, relations);
     }
 
     public Issue getIssue(Long issueId) {
@@ -122,17 +112,8 @@ public class IssueService {
         IssueEntity findIssueEntity = issueEntityRepository.findById(issueId)
                 .orElseThrow(() -> new NotFoundException(IssueEntity.class));
 
-        // 이슈 애플리케이션 조회
-        Set<IssueApplicationEntity> findIssueApplicationEntities = issueApplicationEntityRepository.findByIssueEntity(
-                findIssueEntity);
-
-        // 이슈 코스 조회
-        Set<IssueCourseEntity> findIssueCourseEntities = issueCourseEntityRepository.findByIssueEntity(findIssueEntity);
-
-        // 이슈 유저 그룹 조회
-        Set<IssueUsergroupEntity> findIssueUsergroupEntites = issueUsergroupEntityRepository.findByIssueEntity(findIssueEntity);
-
-        return Issue.of(findIssueEntity, findIssueApplicationEntities, findIssueCourseEntities, findIssueUsergroupEntites);
+        var relations = loadRelations(findIssueEntity);
+        return Issue.of(findIssueEntity, relations);
     }
 
     public Issue getOnlyIssue(Long issueId) {
@@ -140,7 +121,7 @@ public class IssueService {
         IssueEntity findIssueEntity = issueEntityRepository.findById(issueId)
                 .orElseThrow(() -> new NotFoundException(IssueEntity.class));
 
-        return Issue.create(findIssueEntity);
+        return Issue.fromEntity(findIssueEntity);
     }
 
     @Transactional
@@ -161,17 +142,8 @@ public class IssueService {
         // 이슈 상태 변경
         findIssueEntity.solve();
 
-        // 이슈 애플리케이션 조회
-        Set<IssueApplicationEntity> findIssueApplicationEntities = issueApplicationEntityRepository.findByIssueEntity(
-                findIssueEntity);
-
-        // 이슈 코스 조회
-        Set<IssueCourseEntity> findIssueCourseEntities = issueCourseEntityRepository.findByIssueEntity(findIssueEntity);
-
-        // 이슈 유저 그룹 조회
-        Set<IssueUsergroupEntity> findIssueUsergroupEntites = issueUsergroupEntityRepository.findByIssueEntity(findIssueEntity);
-
-        return Issue.of(findIssueEntity, findIssueApplicationEntities, findIssueCourseEntities, findIssueUsergroupEntites);
+        var relations = loadRelations(findIssueEntity);
+        return Issue.of(findIssueEntity, relations);
     }
 
     @Transactional
@@ -184,7 +156,7 @@ public class IssueService {
         // 이슈 Jira 이슈 정보 변경
         findIssueEntity.changeJiraIssue(jiraIssue);
 
-        return Issue.create(findIssueEntity);
+        return Issue.fromEntity(findIssueEntity);
     }
 
     public List<Issue> findTopSimilarityIssues(Long issueId, int limit) {
@@ -206,11 +178,22 @@ public class IssueService {
                 .map(issueEntity -> {
                     // 코사인 유사도 계산
                     double similarityScore = issueEntity.getEmbeddings().cosineSimilarity(targetEmbeddings);
-                    return Issue.create(issueEntity, similarityScore);
+                    return Issue.fromEntity(issueEntity, similarityScore);
                 })
                 .sorted(Comparator.comparingDouble(Issue::getSimilarityScore).reversed())
                 .filter(issue -> issue.getSimilarityScore() > SIMILARITY_SCORE_LIMIT)
                 .limit(limit)
                 .toList();
+    }
+
+    /**
+     * IssueEntity에 대한 관계 엔티티들을 조회하여 IssueRelations로 반환
+     */
+    private IssueRelations loadRelations(IssueEntity issueEntity) {
+        Set<IssueApplicationEntity> applications = issueApplicationEntityRepository.findByIssueEntity(issueEntity);
+        Set<IssueCourseEntity> courses = issueCourseEntityRepository.findByIssueEntity(issueEntity);
+        Set<IssueUsergroupEntity> usergroups = issueUsergroupEntityRepository.findByIssueEntity(issueEntity);
+
+        return new IssueRelations(applications, courses, usergroups);
     }
 }

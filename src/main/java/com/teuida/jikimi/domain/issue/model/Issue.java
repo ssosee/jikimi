@@ -46,11 +46,9 @@ public class Issue {
 
     /**
      * Entity와 관련 엔티티들로부터 도메인 객체 생성
+     * JiraContext는 항상 생성됩니다 (Null Object Pattern).
      */
-    public static Issue of(IssueEntity issueEntity,
-                           Set<IssueApplicationEntity> applicationEntities,
-                           Set<IssueCourseEntity> courseEntities,
-                           Set<IssueUsergroupEntity> issueUsergroupEntities) {
+    public static Issue of(IssueEntity issueEntity, IssueRelations relations) {
         return Issue.builder()
                 .id(issueEntity.getId())
                 .status(issueEntity.getStatus())
@@ -59,72 +57,17 @@ public class Issue {
                 .description(issueEntity.getDescription())
                 .userEmail(issueEntity.getUserEmail())
                 .createDateTime(issueEntity.getCreateDateTime())
-                .applicationTypes(applicationEntities.stream()
-                        .map(IssueApplicationEntity::getType)
-                        .collect(Collectors.toSet()))
-                .courseTypes(courseEntities.stream()
-                        .map(IssueCourseEntity::getType)
-                        .collect(Collectors.toSet()))
-                .slackContext(SlackContext.builder()
-                        .channelId(issueEntity.getSlackChannelId())
-                        .messageTs(issueEntity.getSlackMessageTs())
-                        .reporterId(issueEntity.getSlackReporterId())
-                        .assigneeId(issueEntity.getSlackAssigneeId())
-                        .assignedUsergroupIds(issueUsergroupEntities.stream()
-                                .map(IssueUsergroupEntity::getSlackUsergroupId)
-                                .collect(Collectors.toSet()))
-                        .build())
-                .jiraContext(JiraContext.builder()
-                        .issueKey(issueEntity.getJiraIssueKey())
-                        .issueBrowserUrl(issueEntity.getJiraIssueBrowserUrl())
-                        .assigneeId(issueEntity.getJiraAssigneeId())
-                        .build())
-                .build();
-    }
-
-    public static Issue createWithOnlySlackContext(IssueEntity issueEntity,
-                                                   Set<IssueApplicationEntity> applicationEntities,
-                                                   Set<IssueCourseEntity> courseEntities,
-                                                   Set<IssueUsergroupEntity> issueUsergroupEntities) {
-        return Issue.builder()
-                .id(issueEntity.getId())
-                .status(issueEntity.getStatus())
-                .environment(issueEntity.getEnvironment())
-                .title(issueEntity.getTitle())
-                .description(issueEntity.getDescription())
-                .userEmail(issueEntity.getUserEmail())
-                .createDateTime(issueEntity.getCreateDateTime())
-                .applicationTypes(applicationEntities.stream()
-                        .map(IssueApplicationEntity::getType)
-                        .collect(Collectors.toSet()))
-                .courseTypes(courseEntities.stream()
-                        .map(IssueCourseEntity::getType)
-                        .collect(Collectors.toSet()))
-                .slackContext(SlackContext.create(issueEntity, issueUsergroupEntities))
-                .build();
-    }
-
-    /**
-     * Entity로부터 도메인 객체 생성 (관계 엔티티 제외)
-     */
-    public static Issue create(IssueEntity issueEntity) {
-        return Issue.builder()
-                .id(issueEntity.getId())
-                .status(issueEntity.getStatus())
-                .environment(issueEntity.getEnvironment())
-                .title(issueEntity.getTitle())
-                .description(issueEntity.getDescription())
-                .userEmail(issueEntity.getUserEmail())
-                .createDateTime(issueEntity.getCreateDateTime())
-                .slackContext(SlackContext.create(issueEntity, Collections.emptySet()))
+                .applicationTypes(relations.applicationTypes())
+                .courseTypes(relations.courseTypes())
+                .slackContext(SlackContext.create(issueEntity, relations.usergroups()))
                 .jiraContext(JiraContext.create(issueEntity))
                 .build();
     }
 
     /**
-     * Entity로부터 도메인 객체 생성 (관계 엔티티 제외)
+     * Entity로부터 도메인 객체 생성 (관계 엔티티 제외, 유사도 검색 등)
      */
-    public static Issue create(IssueEntity issueEntity, Double similarityScore) {
+    public static Issue fromEntity(IssueEntity issueEntity, Double similarityScore) {
         return Issue.builder()
                 .id(issueEntity.getId())
                 .status(issueEntity.getStatus())
@@ -137,6 +80,13 @@ public class Issue {
                 .slackContext(SlackContext.create(issueEntity, Collections.emptySet()))
                 .jiraContext(JiraContext.create(issueEntity))
                 .build();
+    }
+
+    /**
+     * Entity로부터 도메인 객체 생성 (관계 엔티티 제외)
+     */
+    public static Issue fromEntity(IssueEntity issueEntity) {
+        return fromEntity(issueEntity, null);
     }
 
     /**
@@ -157,7 +107,7 @@ public class Issue {
     }
 
     public boolean isOnlySlackAssigned() {
-        return jiraContext == null && slackContext != null && slackContext.isAssignedTo();
+        return !jiraContext.isCreated() && slackContext != null && slackContext.isAssignedTo();
     }
 
     /**
