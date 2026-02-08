@@ -4,7 +4,7 @@
 
 Slack과 Jira를 연동하여 이슈 관리를 자동화하는 지능형 플랫폼
 
-> 2026.01.25 이후로 트이다 Repository 에서 관리 됩니다.
+> 2026.01.25 이후로 [트이다 Repository](https://github.com/teuida-dev-team/teuida-jikimi) 에서 관리 됩니다.
 
 ![Java](https://img.shields.io/badge/Java-25-ED8B00?style=flat-square&logo=openjdk&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.1-6DB33F?style=flat-square&logo=spring&logoColor=white)
