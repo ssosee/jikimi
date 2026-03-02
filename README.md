@@ -26,27 +26,24 @@ Slack과 Jira를 연동하여 이슈 관리를 자동화하는 지능형 플랫�
 
 ## 주요 기능
 
-### Slack 통합
-
+### 이슈 등록
 - `/issue` 슬래시 커맨드로 이슈 생성 모달 호출
     - 이슈 할당 및 상태 변경
+- **Jira 연동**
+    - 이슈 생성 시 Jira 티켓 자동 생성
+    - 양방향 상태 동기화
+- **AI 유사 이슈 검색**
+    - 이슈 생성시 OpenAI Embeddings API를 활용한 벡터 유사도 검색
+    - 0.75 유사도 임계값 기반 중복 이슈 탐지
+    - 관련 이슈 추천
+
+<img width="720" height="480" alt="image" src="https://github.com/user-attachments/assets/4e7f9ca3-e1c8-4f06-9f03-34d0d63f278b" />
+
+### 이슈 통계 대시보드 조회
 - `/issue-stats` 이슈 통계 대시보드 조회
     - 슬랙 메시지 응답 3초 정책으로 비동기 처리
 
-### Jira 연동
-
-- 이슈 생성 시 Jira 티켓 자동 생성
-- 양방향 상태 동기화
-
-### AI 유사 이슈 검색
-
-- 이슈 생성시 OpenAI Embeddings API를 활용한 벡터 유사도 검색
-- 0.75 유사도 임계값 기반 중복 이슈 탐지
-- 관련 이슈 추천
-
-<img width="681" height="693" alt="image" src="https://github.com/user-attachments/assets/4e7f9ca3-e1c8-4f06-9f03-34d0d63f278b" />
-
-<img width="1024" height="597" alt="image" src="https://github.com/user-attachments/assets/56c16ad6-0c1e-4bf4-866b-b5fd6a39c7b4" />
+<img width="720" height="480" alt="image" src="https://github.com/user-attachments/assets/56c16ad6-0c1e-4bf4-866b-b5fd6a39c7b4" />
 
 ### 프리미엄 관리
 
@@ -55,7 +52,7 @@ Slack과 Jira를 연동하여 이슈 관리를 자동화하는 지능형 플랫�
     - 부여 사유 선택 (CS 대응, 이벤트, 홍보/마케팅, 제휴, 내부 테스트, 보상, 기타)
     - 부여 이력 자동 기록 (감사 로그)
 
-<img width="720" height="402" alt="image" src="https://github.com/user-attachments/assets/7b5914fd-24ef-42ab-a43d-bdbffdd3e9ab" />
+<img width="720" height="480" alt="image" src="https://github.com/user-attachments/assets/7b5914fd-24ef-42ab-a43d-bdbffdd3e9ab" />
 
 
 ### 학습 이력 조회
@@ -64,7 +61,7 @@ Slack과 Jira를 연동하여 이슈 관리를 자동화하는 지능형 플랫�
     - 지원 과정: KOEN, JAEN, ESEN, KOJA, FREN, ZHEN
     - 대량 데이터 시 외부 Zeppelin UI 링크 제공
 
-<img width="635" height="1109" alt="image" src="https://github.com/user-attachments/assets/ad9bf6e6-f16b-4b9d-8c5d-c8ce7c00b3c9" />
+<img width="480" height="720" alt="image" src="https://github.com/user-attachments/assets/ad9bf6e6-f16b-4b9d-8c5d-c8ce7c00b3c9" />
 
 
 
