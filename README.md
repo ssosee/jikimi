@@ -1,6 +1,7 @@
 # TEUIDA Jikimi
 
-![img.png](readme-intro.png)
+<img width="731" height="489" alt="image" src="https://github.com/user-attachments/assets/396741ea-2a0c-4338-8018-25a5baa4925a" />
+
 
 Slack과 Jira를 연동하여 이슈 관리를 자동화하는 지능형 플랫폼
 
@@ -42,6 +43,30 @@ Slack과 Jira를 연동하여 이슈 관리를 자동화하는 지능형 플랫�
 - 이슈 생성시 OpenAI Embeddings API를 활용한 벡터 유사도 검색
 - 0.75 유사도 임계값 기반 중복 이슈 탐지
 - 관련 이슈 추천
+
+<img width="681" height="693" alt="image" src="https://github.com/user-attachments/assets/4e7f9ca3-e1c8-4f06-9f03-34d0d63f278b" />
+
+<img width="1024" height="597" alt="image" src="https://github.com/user-attachments/assets/56c16ad6-0c1e-4bf4-866b-b5fd6a39c7b4" />
+
+### 프리미엄 관리
+
+- `/grant-premium` 슬래시 커맨드로 프리미엄 만료일 관리 모달 호출
+    - 실시간 현재 만료일 조회 (이메일 입력 후 Enter)
+    - 부여 사유 선택 (CS 대응, 이벤트, 홍보/마케팅, 제휴, 내부 테스트, 보상, 기타)
+    - 부여 이력 자동 기록 (감사 로그)
+
+<img width="720" height="402" alt="image" src="https://github.com/user-attachments/assets/7b5914fd-24ef-42ab-a43d-bdbffdd3e9ab" />
+
+
+### 학습 이력 조회
+
+- `/search-learning-history {email} {courseCode}` 형태로 학습 이력 조회
+    - 지원 과정: KOEN, JAEN, ESEN, KOJA, FREN, ZHEN
+    - 대량 데이터 시 외부 Zeppelin UI 링크 제공
+
+<img width="635" height="1109" alt="image" src="https://github.com/user-attachments/assets/ad9bf6e6-f16b-4b9d-8c5d-c8ce7c00b3c9" />
+
+
 
 ### 캐싱
 
@@ -167,6 +192,15 @@ src/main/java/com/teuida/jikimi/
 │   │   ├── repository/        # Repository
 │   │   ├── service/           # 비즈니스 로직
 │   │   └── model/             # 도메인 모델
+│   ├── premium/               # 프리미엄 도메인
+│   │   ├── entity/            # JPA 엔티티
+│   │   ├── enums/             # 부여 사유 Enum
+│   │   ├── repository/        # Repository
+│   │   └── service/           # 비즈니스 로직
+│   ├── learning/              # 학습 이력 도메인
+│   │   ├── dto/               # DTO
+│   │   ├── repository/        # Repository
+│   │   └── service/           # 비즈니스 로직
 │   └── exception/             # 도메인 예외
 │
 ├── slack/                     # Slack 통합 모듈
@@ -176,6 +210,12 @@ src/main/java/com/teuida/jikimi/
 │   │   ├── parser/            # 요청 파서
 │   │   ├── service/           # Slack 이슈 서비스
 │   │   └── dto/               # DTO
+│   ├── premium/               # 프리미엄 관련 핸들러
+│   │   ├── handler/           # 커맨드/모달/액션 핸들러
+│   │   └── service/           # 프리미엄 Slack 서비스
+│   ├── learning/              # 학습 이력 관련 핸들러
+│   │   ├── handler/           # 커맨드 핸들러
+│   │   └── service/           # 학습 이력 Slack 서비스
 │   ├── service/               # Slack 공통 서비스
 │   ├── aspect/                # Slack AOP
 │   ├── util/                  # 유틸리티
